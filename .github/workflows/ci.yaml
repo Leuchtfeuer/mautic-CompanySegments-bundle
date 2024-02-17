@@ -1,0 +1,30 @@
+name: Continuous Integration
+on:
+  push:
+    branches:
+      - master
+      - 'MTC\-[0-9]+'
+  pull_request:
+
+jobs:
+  integration:
+    name: Integration tests
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        php-version: [8.0, 8.1]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+      - name: Install composer requirements.
+        run: composer install
+      - name: Check PHP CS
+        run: ./vendor/bin/php-cs-fixer fix --config .php-cs-fixer.php --dry-run --using-cache no --show-progress dots -v
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan --no-progress
+      - name: Run PHPUnit
+        run: ./vendor/bin/phpunit

@@ -1,0 +1,27 @@
+includes:
+        - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+        - vendor/phpstan/phpstan-strict-rules/rules.neon
+        - vendor/phpstan/phpstan-phpunit/extension.neon
+        - vendor/phpstan/phpstan-phpunit/rules.neon
+
+parameters:
+    level: max
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - .
+    excludePaths:
+        - vendor
+    ignoreErrors:
+        - message: "#^Parameter \\#1 \\$metadata#"
+          count: 1
+          path: Entity/EmailBounce.php
+        - message: "#TranslatorInterface#"
+          count: 1
+          path: EventListener/TimelineEventLogSubscriber.php
+        - message: "#expects null, string given#"
+          count: 2
+          path: EventListener/TimelineEventLogSubscriber.php
+        - message: "#^Method MauticPlugin\\\\LeuchtfeuerPropagateBounceBundle\\\\Model\\\\EmailBounceModel::getRepository\\(\\) should return MauticPlugin\\\\LeuchtfeuerPropagateBounceBundle\\\\Entity\\\\EmailBounceRepository#"
+          count: 1
+          path: Model/EmailBounceModel.php
+
