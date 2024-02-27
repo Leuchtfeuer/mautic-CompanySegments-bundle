@@ -43,7 +43,7 @@ class CompanySegment extends FormEntity
     private bool $isPreferenceCenter = false;
 
     /**
-     * @var Collection<Company>
+     * @var Collection<int, Company>
      */
     private Collection $companies;
 
@@ -151,6 +151,14 @@ class CompanySegment extends FormEntity
         $this->isChanged('name', $name);
         $this->name = $name;
 
+        if (null === $this->alias || '' === $this->alias) {
+            $this->setAlias($name);
+        }
+
+        if (null === $this->publicName || '' === $this->publicName) {
+            $this->setPublicName($name);
+        }
+
         return $this;
     }
 
@@ -192,6 +200,10 @@ class CompanySegment extends FormEntity
 
     public function setPublicName(?string $publicName): self
     {
+        if (null === $publicName || '' === $publicName) {
+            $publicName = $this->name;
+        }
+
         $this->isChanged('publicName', $publicName);
         $this->publicName = $publicName;
 
@@ -217,6 +229,7 @@ class CompanySegment extends FormEntity
         // Copy from PR #12214
         $filters = $this->filters;
         foreach ($filters as &$filter) {
+            \assert(is_array($filter));
             $filter['glue'] = 'and';
             break;
         }
@@ -239,6 +252,10 @@ class CompanySegment extends FormEntity
 
     public function setAlias(?string $alias): self
     {
+        if (null === $alias || '' === $alias) {
+            $alias = $this->name;
+        }
+
         $this->isChanged('alias', $alias);
         $this->alias = $alias;
 

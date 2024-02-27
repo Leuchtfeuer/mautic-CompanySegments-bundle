@@ -7,6 +7,9 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\UserBundle\Entity\User;
 
+/**
+ * @extends CommonRepository<CompanySegment>
+ */
 class CompanySegmentRepository extends CommonRepository
 {
     /**
@@ -46,6 +49,9 @@ class CompanySegmentRepository extends CommonRepository
 
         $q->orderBy('cs.name');
 
-        return $q->getQuery()->getArrayResult();
+        /** @var array<array{id: string, name: string, alias: string}> $result */
+        $result = $q->getQuery()->getArrayResult();
+
+        return $result;
     }
 }
