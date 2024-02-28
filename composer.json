@@ -1,5 +1,5 @@
 {
-    "name": "leuchtfeuer/mautic-companysegment-bundle",
+    "name": "leuchtfeuer/mautic-companysegments-bundle",
     "description": "Provide a 2nd type of Segments which can contain Companies (and allows segment filters)",
     "license": "GPL-3.0",
     "type": "mautic-plugin",
