@@ -38,10 +38,6 @@ class CompanySegment extends FormEntity
      */
     private array $filters = [];
 
-    private bool $isGlobal = true;
-
-    private bool $isPreferenceCenter = false;
-
     /**
      * @var Collection<int, Company>
      */
@@ -76,14 +72,6 @@ class CompanySegment extends FormEntity
         $builder->addCategory();
 
         $builder->addField('filters', 'json');
-
-        $builder->createField('isGlobal', 'boolean')
-            ->columnName('is_global')
-            ->build();
-
-        $builder->createField('isPreferenceCenter', 'boolean')
-            ->columnName('is_preference_center')
-            ->build();
 
         $builder->createManyToMany('companies', Company::class)
             ->setJoinTable('company_segment_xref')
@@ -134,8 +122,6 @@ class CompanySegment extends FormEntity
             ->addProperties(
                 [
                     'filters',
-                    'isGlobal',
-                    'isPreferenceCenter',
                 ]
             )
             ->build();
@@ -237,19 +223,6 @@ class CompanySegment extends FormEntity
         return $filters;
     }
 
-    public function setIsGlobal(bool $isGlobal): self
-    {
-        $this->isChanged('isGlobal', $isGlobal);
-        $this->isGlobal = $isGlobal;
-
-        return $this;
-    }
-
-    public function isGlobal(): bool
-    {
-        return $this->isGlobal;
-    }
-
     public function setAlias(?string $alias): self
     {
         if (null === $alias || '' === $alias) {
@@ -273,17 +246,6 @@ class CompanySegment extends FormEntity
     public function getCompanies(): Collection
     {
         return $this->companies;
-    }
-
-    public function getIsPreferenceCenter(): bool
-    {
-        return $this->isPreferenceCenter;
-    }
-
-    public function setIsPreferenceCenter(bool $isPreferenceCenter): void
-    {
-        $this->isChanged('isPreferenceCenter', $isPreferenceCenter);
-        $this->isPreferenceCenter = $isPreferenceCenter;
     }
 
     public function getLastBuiltDate(): ?\DateTimeInterface
