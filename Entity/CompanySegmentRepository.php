@@ -54,4 +54,9 @@ class CompanySegmentRepository extends CommonRepository
 
         return $result;
     }
+
+    public function getTableAlias(): string
+    {
+        return 'cs';
+    }
 }

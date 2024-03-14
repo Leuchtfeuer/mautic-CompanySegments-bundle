@@ -14,6 +14,12 @@ return function (ContainerConfigurator $configurator): void {
 
     $services->load('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\', '../')
         ->exclude('../{'.implode(',', MauticCoreExtension::DEFAULT_EXCLUDES).'}');
+
+    $services->get(\MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\LeuchtfeuerCompanySegmentsIntegration::class)
+        ->tag('mautic.integration')
+        ->tag('mautic.basic_integration');
+    $services->load('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Entity\\', '../Entity/*Repository.php')
+        ->tag(\Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\ServiceRepositoryCompilerPass::REPOSITORY_SERVICE_TAG);
     $services->alias(
         'mautic.integration.leuchtfeuercompanysegments',
         MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\LeuchtfeuerCompanySegmentsIntegration::class

@@ -18,7 +18,7 @@ class CompanySegmentModel extends FormModel
 {
     public function getRepository(): CompanySegmentRepository
     {
-        $repository = parent::getRepository();
+        $repository = $this->em->getRepository(CompanySegment::class);
         \assert($repository instanceof CompanySegmentRepository);
 
         return $repository;
