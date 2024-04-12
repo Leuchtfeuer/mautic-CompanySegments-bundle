@@ -45,4 +45,12 @@ final class CompanySegmentEvents
      * MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentPreUnpublish instance.
      */
     public const COMPANY_SEGMENT_PRE_UNPUBLISH = CompanySegmentPreUnpublish::class;
+
+    /**
+     * The event is dispatched when the choices for campaign segment filters are generated.
+     *
+     * The event listener receives a
+     * MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentFiltersChoicesEvent instance.
+     */
+    public const SEGMENT_FILTERS_CHOICES_ON_GENERATE = CompanySegmentFiltersChoicesEvent::class;
 }

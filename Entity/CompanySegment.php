@@ -19,7 +19,9 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 class CompanySegment extends FormEntity
 {
-    public const TABLE_NAME = 'company_segments';
+    public const TABLE_NAME          = 'company_segments';
+    public const RELATION_TABLE_NAME = 'company_segment_xref';
+    public const RELATED_ENTITY      = 'company';
 
     private ?int $id = null;
 
@@ -34,7 +36,7 @@ class CompanySegment extends FormEntity
     private ?string $alias = null;
 
     /**
-     * @var array<mixed>
+     * @var array<array<mixed>>
      */
     private array $filters = [];
 
@@ -74,10 +76,10 @@ class CompanySegment extends FormEntity
         $builder->addField('filters', 'json');
 
         $builder->createManyToMany('companies', Company::class)
-            ->setJoinTable('company_segment_xref')
+            ->setJoinTable(self::RELATION_TABLE_NAME)
             ->setIndexBy('id')
-            ->addInverseJoinColumn('segment_id', 'id', false, false, 'CASCADE')
-            ->addJoinColumn('company_id', 'id', true, false, 'CASCADE')
+            ->addInverseJoinColumn('company_id', 'id', false, false, 'CASCADE')
+            ->addJoinColumn('segment_id', 'id', true, false, 'CASCADE')
             ->build();
 
         $builder->createField('lastBuiltDate', 'datetime')
@@ -197,7 +199,7 @@ class CompanySegment extends FormEntity
     }
 
     /**
-     * @param array<mixed> $filters
+     * @param array<array<mixed>> $filters
      */
     public function setFilters(array $filters): self
     {
@@ -208,7 +210,7 @@ class CompanySegment extends FormEntity
     }
 
     /**
-     * @return array<mixed>
+     * @return array<array<mixed>>
      */
     public function getFilters(): array
     {
@@ -221,6 +223,17 @@ class CompanySegment extends FormEntity
         }
 
         return $filters;
+    }
+
+    public function hasFilterTypeOf(string $type): bool
+    {
+        foreach ($this->getFilters() as $filter) {
+            if ($filter['type'] === $type) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function setAlias(?string $alias): self

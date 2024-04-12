@@ -9,11 +9,8 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 
 class CompanySegmentPreSavedEvent extends CompanySegmentEvent
 {
-    private bool $isNew;
-
-    public function __construct(CompanySegment $companySegment, EntityManagerInterface $entityManager, bool $isNew)
+    public function __construct(CompanySegment $companySegment, EntityManagerInterface $entityManager, private bool $isNew)
     {
-        $this->isNew = $isNew;
         parent::__construct($companySegment, $entityManager);
     }
 

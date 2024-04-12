@@ -15,13 +15,8 @@ use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
 class UniqueAliasValidator extends ConstraintValidator
 {
-    public CompanySegmentRepository $segmentRepository;
-    public UserHelper $userHelper;
-
-    public function __construct(CompanySegmentRepository $segmentRepository, UserHelper $userHelper)
+    public function __construct(public CompanySegmentRepository $companySegmentRepository, public UserHelper $userHelper)
     {
-        $this->segmentRepository = $segmentRepository;
-        $this->userHelper        = $userHelper;
     }
 
     public function validate($value, Constraint $constraint): void
@@ -45,7 +40,7 @@ class UniqueAliasValidator extends ConstraintValidator
             return;
         }
 
-        $segments = $this->segmentRepository->getSegments(
+        $segments = $this->companySegmentRepository->getSegments(
             $this->userHelper->getUser(),
             $alias,
             $value->getId()

@@ -13,15 +13,21 @@ return function (ContainerConfigurator $configurator): void {
         ->public();
 
     $services->load('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\', '../')
-        ->exclude('../{'.implode(',', MauticCoreExtension::DEFAULT_EXCLUDES).'}');
+        ->exclude('../{'.implode(',', array_merge(MauticCoreExtension::DEFAULT_EXCLUDES, ['rector.php'])).'}');
 
-    $services->get(\MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\LeuchtfeuerCompanySegmentsIntegration::class)
+    $services->get(MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\LeuchtfeuerCompanySegmentsIntegration::class)
         ->tag('mautic.integration')
         ->tag('mautic.basic_integration');
     $services->load('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Entity\\', '../Entity/*Repository.php')
-        ->tag(\Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\ServiceRepositoryCompilerPass::REPOSITORY_SERVICE_TAG);
+        ->tag(Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\ServiceRepositoryCompilerPass::REPOSITORY_SERVICE_TAG);
+    $services->load('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\DataFixtures\\ORM\\', '../DataFixtures/ORM/')
+        ->tag(Doctrine\Bundle\FixturesBundle\DependencyInjection\CompilerPass\FixturesCompilerPass::FIXTURE_TAG);
     $services->alias(
         'mautic.integration.leuchtfeuercompanysegments',
         MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\LeuchtfeuerCompanySegmentsIntegration::class
+    );
+    $services->alias(
+        'mautic.company_segments.model.company_segment',
+        MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel::class
     );
 };

@@ -10,13 +10,8 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 abstract class CompanySegmentEvent extends Event
 {
-    private EntityManagerInterface $entityManager;
-    private CompanySegment $companySegment;
-
-    public function __construct(CompanySegment $companySegment, EntityManagerInterface $entityManager)
+    public function __construct(private CompanySegment $companySegment, private EntityManagerInterface $entityManager)
     {
-        $this->entityManager  = $entityManager;
-        $this->companySegment = $companySegment;
     }
 
     public function getEntityManager(): EntityManagerInterface
