@@ -42,8 +42,8 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $crawler = $this->client->submit($form);
         self::assertResponseIsSuccessful();
 
-        self::assertCount(1, $crawler->filter('h3'));
-        self::assertStringContainsString($segmentName, $crawler->filter('h3')->text());
+        self::assertCount(1, $crawler->filter('.page-header'));
+        self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
         $crawler = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
@@ -83,8 +83,8 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $crawler = $this->client->submit($form);
         self::assertResponseIsSuccessful();
 
-        self::assertCount(1, $crawler->filter('h3'));
-        self::assertStringContainsString($segmentName, $crawler->filter('h3')->text());
+        self::assertCount(1, $crawler->filter('.page-header'));
+        self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
         $crawler = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
@@ -169,8 +169,8 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $crawler = $this->client->submit($form);
         self::assertResponseIsSuccessful();
 
-        self::assertCount(1, $crawler->filter('h3'));
-        self::assertStringContainsString($segmentName, $crawler->filter('h3')->text());
+        self::assertCount(1, $crawler->filter('.page-header'));
+        self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
         $crawler = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();

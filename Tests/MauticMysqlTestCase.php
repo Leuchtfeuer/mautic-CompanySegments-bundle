@@ -40,46 +40,46 @@ class MauticMysqlTestCase extends \Mautic\CoreBundle\Test\MauticMysqlTestCase
         }
     }
 
-//    public function onNotSuccessfulTest(\Throwable $t): void
-//    {
-//        $client = $this->client;
-//
-//        if ($client->getHistory()->isEmpty()) {
-//            throw $t;
-//        }
-//
-//        $response = null;
-//
-//        try {
-//            if (null !== $this->tmpDir) {
-//                $response = $client->getResponse();
-//            }
-//        } catch (BadMethodCallException $badMethodCallException) {
-//            throw $t;
-//        }
-//
-//        if (null !== $response) {
-//            if (!is_dir($this->tmpDir)) {
-//                mkdir($this->tmpDir);
-//            }
-//
-//            $temporaryOutput    = tempnam($this->tmpDir, 'test').'.html';
-//            $temporaryOutputWeb = $this->testHost.basename($temporaryOutput);
-//            file_put_contents($temporaryOutput, $response->getContent());
-//            chmod($temporaryOutput, 0644);
-//
-//            $reflectionObject   = new \ReflectionObject($t);
-//            $reflectionProperty = $reflectionObject->getProperty('message');
-//            $reflectionProperty->setAccessible(true);
-//            $reflectionProperty->setValue($t, $t->getMessage()."\nOut: ".$temporaryOutputWeb);
-//        }
-//
-//        $this->fixtures = null;
-//
-//        self::ensureKernelShutdown();
-//
-//        parent::onNotSuccessfulTest($t);
-//    }
+    public function onNotSuccessfulTest(\Throwable $t): void
+    {
+        $client = $this->client;
+
+        if ($client->getHistory()->isEmpty()) {
+            throw $t;
+        }
+
+        $response = null;
+
+        try {
+            if (null !== $this->tmpDir) {
+                $response = $client->getResponse();
+            }
+        } catch (BadMethodCallException $badMethodCallException) {
+            throw $t;
+        }
+
+        if (null !== $response) {
+            if (!is_dir($this->tmpDir)) {
+                mkdir($this->tmpDir);
+            }
+
+            $temporaryOutput    = tempnam($this->tmpDir, 'test').'.html';
+            $temporaryOutputWeb = $this->testHost.basename($temporaryOutput);
+            file_put_contents($temporaryOutput, $response->getContent());
+            chmod($temporaryOutput, 0644);
+
+            $reflectionObject   = new \ReflectionObject($t);
+            $reflectionProperty = $reflectionObject->getProperty('message');
+            $reflectionProperty->setAccessible(true);
+            $reflectionProperty->setValue($t, $t->getMessage()."\nOut: ".$temporaryOutputWeb);
+        }
+
+        $this->fixtures = null;
+
+        self::ensureKernelShutdown();
+
+        parent::onNotSuccessfulTest($t);
+    }
 
     /**
      * @param array<mixed> $classNames
