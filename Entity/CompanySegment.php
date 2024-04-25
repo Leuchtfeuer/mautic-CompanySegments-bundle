@@ -61,7 +61,7 @@ class CompanySegment extends FormEntity
         $builder->setTable(self::TABLE_NAME)
             ->setCustomRepositoryClass(CompanySegmentRepository::class)
             ->addLifecycleEvent('initializeLastBuiltDate', 'prePersist')
-            ->addIndex(['alias'], 'lead_list_alias');
+            ->addIndex(['alias'], 'company_list_alias');
 
         $builder->addIdColumns();
 

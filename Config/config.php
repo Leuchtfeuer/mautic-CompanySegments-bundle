@@ -8,11 +8,11 @@ return [
     'routes'      => [
         'main' => [
             'mautic_company_segments_index' => [
-                'path'       => '/company-segments/{page}',
+                'path'       => '/companysegments/{page}',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanySegmentController::indexAction',
             ],
             'mautic_company_segments_action' => [
-                'path'       => '/company-segments/{objectAction}/{objectId}',
+                'path'       => '/companysegments/{objectAction}/{objectId}',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanySegmentController::executeAction',
             ],
         ],
