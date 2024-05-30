@@ -7,6 +7,7 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Tests;
 use Doctrine\Common\DataFixtures\Executor\AbstractExecutor;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Mautic\LeadBundle\Entity\Company;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use Symfony\Component\BrowserKit\Exception\BadMethodCallException;
 
@@ -42,7 +43,11 @@ class MauticMysqlTestCase extends \Mautic\CoreBundle\Test\MauticMysqlTestCase
 
     public function onNotSuccessfulTest(\Throwable $t): void
     {
-        $client = $this->client;
+        try {
+            $client = $this->client;
+        } catch (\Error $e) {
+            throw $t;
+        }
 
         if ($client->getHistory()->isEmpty()) {
             throw $t;
@@ -114,6 +119,27 @@ class MauticMysqlTestCase extends \Mautic\CoreBundle\Test\MauticMysqlTestCase
 
         if (!$this->getDoctrine()->getManager()->contains($return)) {
             $return = $this->getDoctrine()->getRepository(CompanySegment::class)->find($return->getId());
+        }
+
+        if (null === $return) {
+            throw new \RuntimeException('Can not refresh or find the entity.');
+        }
+
+        $this->getDoctrine()->getManager()->refresh($return);
+
+        return $return;
+    }
+
+    public function getCompany(string $reference): Company
+    {
+        if (null === $this->fixtures) {
+            throw new \RuntimeException('Fixtures are not loaded.');
+        }
+
+        $return = $this->fixtures->getReference($reference, Company::class);
+
+        if (!$this->getDoctrine()->getManager()->contains($return)) {
+            $return = $this->getDoctrine()->getRepository(Company::class)->find($return->getId());
         }
 
         if (null === $return) {

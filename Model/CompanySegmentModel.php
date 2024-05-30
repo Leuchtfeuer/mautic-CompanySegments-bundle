@@ -10,11 +10,14 @@ use Mautic\CoreBundle\Helper\UserHelper;
 use Mautic\CoreBundle\Model\FormModel;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use Mautic\CoreBundle\Translation\Translator;
+use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\OperatorListTrait;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentAdd;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentEvents;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentFiltersChoicesEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRemove;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\CompanySegmentType;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Helper\SegmentCountCacheHelper;
 use Psr\Log\LoggerInterface;
@@ -308,6 +311,106 @@ class CompanySegmentModel extends FormModel
         }
 
         return $namesNotToBeDeleted;
+    }
+
+    /**
+     * @param iterable<CompanySegment|int|string> $companySegments
+     */
+    public function addCompany(Company $company, iterable $companySegments): void
+    {
+        if (is_array($companySegments) && is_numeric(current($companySegments))) {
+            foreach ($companySegments as $index => $segmentId) {
+                \assert(is_numeric($segmentId));
+                $companySegments[$index] = (int) $segmentId;
+            }
+
+            $companySegments = $this->getEntities([
+                'filter' => [
+                    'force' => [
+                        [
+                            'column' => 'cs.id',
+                            'expr'   => 'in',
+                            'value'  => $companySegments,
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        $companyChangeSegment = [];
+        foreach ($companySegments as $companySegment) {
+            if ($companySegment->hasCompany($company)) {
+                continue;
+            }
+
+            $companySegment->addCompany($company);
+
+            $companyChangeSegment[$companySegment->getId()] = $companySegment;
+            $this->segmentCountCacheHelper->incrementSegmentCompanyCount($companySegment->getId());
+        }
+
+        foreach ($companyChangeSegment as $companySegment) {
+            $event = new CompanySegmentAdd($company, $companySegment);
+            $this->dispatcher->dispatch($event);
+
+            unset($event);
+        }
+
+        if ([] !== $companyChangeSegment) {
+            $this->getRepository()->saveEntities($companyChangeSegment);
+        }
+
+        $this->getRepository()->detachEntities(!is_array($companySegments) ? iterator_to_array($companySegments) : $companySegments);
+    }
+
+    /**
+     * @param iterable<CompanySegment|int> $companySegments
+     */
+    public function removeCompany(Company $company, iterable $companySegments): void
+    {
+        if (is_array($companySegments) && is_numeric(current($companySegments))) {
+            foreach ($companySegments as $index => $segmentId) {
+                \assert(is_numeric($segmentId));
+                $companySegments[$index] = (int) $segmentId;
+            }
+
+            $companySegments = $this->getEntities([
+                'filter' => [
+                    'force' => [
+                        [
+                            'column' => 'cs.id',
+                            'expr'   => 'in',
+                            'value'  => $companySegments,
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        $companyChangeSegment = [];
+        foreach ($companySegments as $companySegment) {
+            if (!$companySegment->hasCompany($company)) {
+                continue;
+            }
+
+            $companySegment->removeCompany($company);
+
+            $companyChangeSegment[$companySegment->getId()] = $companySegment;
+            $this->segmentCountCacheHelper->decrementSegmentCompanyCount($companySegment->getId());
+        }
+
+        foreach ($companyChangeSegment as $companySegment) {
+            $event = new CompanySegmentRemove($company, $companySegment);
+            $this->dispatcher->dispatch($event);
+
+            unset($event);
+        }
+
+        if ([] !== $companyChangeSegment) {
+            $this->getRepository()->saveEntities($companyChangeSegment);
+        }
+
+        $this->getRepository()->detachEntities(!is_array($companySegments) ? iterator_to_array($companySegments) : $companySegments);
     }
 
     public function getPermissionBase(): string

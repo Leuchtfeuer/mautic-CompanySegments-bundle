@@ -254,11 +254,36 @@ class CompanySegment extends FormEntity
     }
 
     /**
+     * The getter is used in tests.
+     *
      * @return Collection<int, Company>
      */
     public function getCompanies(): Collection
     {
         return $this->companies;
+    }
+
+    public function addCompany(Company $company): void
+    {
+        if ($this->companies->contains($company)) {
+            return;
+        }
+
+        $this->companies->add($company);
+    }
+
+    public function removeCompany(Company $company): void
+    {
+        if (!$this->companies->contains($company)) {
+            return;
+        }
+
+        $this->companies->removeElement($company);
+    }
+
+    public function hasCompany(Company $company): bool
+    {
+        return $this->companies->contains($company);
     }
 
     public function getLastBuiltDate(): ?\DateTimeInterface

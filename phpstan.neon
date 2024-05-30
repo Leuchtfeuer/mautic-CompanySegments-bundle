@@ -17,4 +17,11 @@ parameters:
         - message: "#has parameter \\$metadata with generic class Doctrine\\\\ORM\\\\Mapping\\\\ClassMetadata#"
           count: 1
           path: Entity/CompanySegment.php
+          ### below is added to base Mautic phpstan.neon ###
+        - message: '#has typehint with deprecated class Mautic\\CoreBundle\\Factory\\MauticFactory#'
+          count: 1
+          path: Controller/BatchSegmentController.php
+        - message: '#^Dead catch - Error is never thrown in the try block.$#'
+          count: 1
+          path: Tests/MauticMysqlTestCase.php
 

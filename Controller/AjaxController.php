@@ -64,7 +64,7 @@ class AjaxController extends CommonAjaxController
         );
     }
 
-    public function getCompaniesCountActions(Request $request, CompanyModel $companyModel, CompanySegmentModel $companySegmentModel): JsonResponse
+    public function getCompaniesCountAction(Request $request, CompanyModel $companyModel, CompanySegmentModel $companySegmentModel): JsonResponse
     {
         $id = InputHelper::clean($request->get('id'));
         $id = is_numeric($id) ? (int) $id : 0;

@@ -76,7 +76,7 @@ class CompanySegmentRepository extends CommonRepository
 
         $return = [];
         foreach ($result as $r) {
-            $return[$r['id']] = $r['thecount'];
+            $return[$r['segment_id']] = $r['thecount'];
         }
 
         foreach ($segmentIds as $l) {

@@ -8,12 +8,20 @@ return [
     'routes'      => [
         'main' => [
             'mautic_company_segments_index' => [
-                'path'       => '/companysegments/{page}',
+                'path'       => '/company-segments/{page}',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanySegmentController::indexAction',
             ],
             'mautic_company_segments_action' => [
-                'path'       => '/companysegments/{objectAction}/{objectId}',
+                'path'       => '/company-segments/{objectAction}/{objectId}',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanySegmentController::executeAction',
+            ],
+            'mautic_company_segments_batch_company_set' => [
+                'path'       => '/company-segments/batch/company/set',
+                'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\BatchSegmentController::setAction',
+            ],
+            'mautic_company_segments_batch_company_view' => [
+                'path'       => '/company-segments/batch/company/view',
+                'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\BatchSegmentController::indexAction',
             ],
         ],
     ],

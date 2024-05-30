@@ -23,8 +23,9 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
 
     public function testCreate(): void
     {
+        $this->loadFixtures([LoadUserData::class, LoadRoleData::class], false);
         $segmentName = 'Segment test';
-        $crawler     = $this->client->request('GET', '/s/companysegments');
+        $crawler     = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         self::assertCount(0, $crawler->filter('#companyListTable > tbody'));
@@ -45,7 +46,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         self::assertCount(1, $crawler->filter('.page-header'));
         self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
-        $crawler = $this->client->request('GET', '/s/companysegments');
+        $crawler = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
         self::assertCount(1, $crawler->filter('#companyListTable > tbody > tr'));
         self::assertStringContainsString($segmentName, $crawler->filter('#companyListTable > tbody > tr')->eq(0)->filter('td')->eq(1)->text());
@@ -56,7 +57,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $this->loadFixtures([LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
 
         $segmentName = 'Segment test';
-        $crawler     = $this->client->request('GET', '/s/companysegments');
+        $crawler     = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT);
@@ -86,7 +87,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         self::assertCount(1, $crawler->filter('.page-header'));
         self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
-        $crawler = $this->client->request('GET', '/s/companysegments');
+        $crawler = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
         self::assertCount(1, $crawler->filter('#companyListTable > tbody > tr'));
         self::assertStringContainsString($segmentName, $crawler->filter('#companyListTable > tbody > tr')->eq(0)->filter('td')->eq(1)->text());
@@ -96,7 +97,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
     {
         $this->loadFixtures([LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
 
-        $crawler = $this->client->request('GET', '/s/companysegments');
+        $crawler = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT);
@@ -121,7 +122,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
     {
         $this->loadFixtures([LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
 
-        $crawler = $this->client->request('GET', '/s/companysegments');
+        $crawler = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT);
@@ -142,7 +143,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $this->loadFixtures([LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
 
         $segmentName = 'Segment test';
-        $crawler     = $this->client->request('GET', '/s/companysegments');
+        $crawler     = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT);
@@ -172,7 +173,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         self::assertCount(1, $crawler->filter('.page-header'));
         self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
-        $crawler = $this->client->request('GET', '/s/companysegments');
+        $crawler = $this->client->request('GET', '/s/company-segments');
         self::assertResponseIsSuccessful();
         self::assertCount(2, $crawler->filter('#companyListTable > tbody > tr'));
         self::assertStringContainsString($companySegmentName, $crawler->filter('#companyListTable > tbody > tr')->eq(0)->filter('td')->eq(1)->text());

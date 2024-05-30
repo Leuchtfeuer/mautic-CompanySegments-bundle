@@ -11,14 +11,11 @@ class SegmentCountCacheHelper
 {
     private Psr16Cache $cache;
 
-    public function __construct(CacheProvider $cacheStorageHelper)
+    public function __construct(CacheProvider $cacheProvider)
     {
-        $this->cache = $cacheStorageHelper->getSimpleCache();
+        $this->cache = $cacheProvider->getSimpleCache();
     }
 
-    /**
-     * @throws \Exception
-     */
     public function getSegmentCompanyCount(int $segmentId): int
     {
         $segmentCompanyCount = $this->cache->get($this->generateCacheKey($segmentId));
@@ -30,9 +27,6 @@ class SegmentCountCacheHelper
         return (int) $segmentCompanyCount;
     }
 
-    /**
-     * @throws \Exception
-     */
     public function setSegmentCompanyCount(int $segmentId, int $count): void
     {
         $this->cache->set($this->generateCacheKey($segmentId), $count);
