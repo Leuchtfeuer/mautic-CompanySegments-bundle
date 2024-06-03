@@ -18,6 +18,8 @@ return function (ContainerConfigurator $configurator): void {
     $services->get(MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\LeuchtfeuerCompanySegmentsIntegration::class)
         ->tag('mautic.integration')
         ->tag('mautic.basic_integration');
+    $services->get(MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\Support\ConfigSupport::class)
+        ->tag('mautic.config_integration');
     $services->load('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Entity\\', '../Entity/*Repository.php')
         ->tag(Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\ServiceRepositoryCompilerPass::REPOSITORY_SERVICE_TAG);
     $services->load('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\DataFixtures\\ORM\\', '../DataFixtures/ORM/')

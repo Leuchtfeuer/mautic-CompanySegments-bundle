@@ -4,6 +4,8 @@ Provide a 2nd type of Segments which can contain companies (and allows segment f
 ## Features
 
 ## Install
+ 1. Enable plugin.
+ 2. Run `composer generate-assets`, or `bin/console mautic:assets:generate` if you do not have composer installed.
 
 ## Requirements
 * Mautic version 5.0
