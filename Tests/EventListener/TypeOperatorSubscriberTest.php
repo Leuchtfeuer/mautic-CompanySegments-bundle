@@ -513,7 +513,7 @@ class TypeOperatorSubscriberTest extends TestCase
 
         self::assertSame(
             [
-                'label'      => 'mautic.lead.list.filter.lists',
+                'label'      => 'mautic.company_segments.filter.lists',
                 'properties' => [
                     'type' => 'company_segments',
                     'list' => [

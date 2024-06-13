@@ -89,7 +89,7 @@ class MauticMysqlTestCase extends \Mautic\CoreBundle\Test\MauticMysqlTestCase
     /**
      * @param array<mixed> $classNames
      */
-    protected function loadFixtures(array $classNames = [], bool $append = true): ?AbstractExecutor
+    protected function loadFixtures(array $classNames = [], bool $append = false): ?AbstractExecutor
     {
         $executor = parent::loadFixtures($classNames, $append);
         \assert(null !== $executor);

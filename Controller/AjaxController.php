@@ -7,7 +7,6 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\LeadBundle\Form\Type\FilterPropertiesType;
-use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Provider\FormAdjustmentsProviderInterface;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -64,12 +63,12 @@ class AjaxController extends CommonAjaxController
         );
     }
 
-    public function getCompaniesCountAction(Request $request, CompanyModel $companyModel, CompanySegmentModel $companySegmentModel): JsonResponse
+    public function getCompaniesCountAction(Request $request, CompanySegmentModel $companySegmentModel): JsonResponse
     {
         $id = InputHelper::clean($request->get('id'));
         $id = is_numeric($id) ? (int) $id : 0;
 
-        $companyExists = 1 === $companyModel->getRepository()->count(['id' => $id]);
+        $companyExists = 1 === $companySegmentModel->getRepository()->count(['id' => $id]);
 
         if (!$companyExists) {
             return new JsonResponse($this->prepareJsonResponse(0), Response::HTTP_NOT_FOUND);
@@ -84,14 +83,14 @@ class AjaxController extends CommonAjaxController
     /**
      * @return array<string, mixed>
      */
-    private function prepareJsonResponse(int $leadCount): array
+    private function prepareJsonResponse(int $companyCount): array
     {
         return [
             'html' => $this->translator->trans(
                 'mautic.company_segments.companies_count',
-                ['%count%' => $leadCount]
+                ['%count%' => $companyCount]
             ),
-            'leadCount' => $leadCount,
+            'companyCount' => $companyCount,
         ];
     }
 }

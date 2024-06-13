@@ -22,6 +22,7 @@ class CompanySegment extends FormEntity
     public const TABLE_NAME          = 'company_segments';
     public const RELATION_TABLE_NAME = 'company_segment_xref';
     public const RELATED_ENTITY      = 'company';
+    public const DEFAULT_ALIAS       = 'cs';
 
     private ?int $id = null;
 

@@ -63,7 +63,7 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
                 'object'     => 'company',
             ],
             CompanySegmentModel::PROPERTIES_FIELD => [
-                'label'      => $this->translator->trans('mautic.lead.list.filter.lists'),
+                'label'      => $this->translator->trans('mautic.company_segments.filter.lists'),
                 'properties' => [
                     'type' => CompanySegmentModel::PROPERTIES_FIELD,
                     'list' => $this->fieldChoicesProvider->getChoicesForField('multiselect', CompanySegmentModel::PROPERTIES_FIELD, $event->getSearch()),
@@ -74,6 +74,7 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
         ];
 
         foreach ($staticFields as $alias => $fieldOptions) {
+            // label is defined as mautic.lead.company_segments
             $event->addChoice(CompanySegmentModel::PROPERTIES_FIELD, $alias, $fieldOptions);
         }
     }

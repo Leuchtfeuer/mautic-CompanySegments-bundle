@@ -10,14 +10,14 @@ env:
   PLUGIN_DIR: plugins/LeuchtfeuerCompanySegmentsBundle # Same as extra.install-directory-name in composer.json
 
 jobs:
-  integration:
-    name: Integration tests ${{ matrix.php-versions }}, ${{ matrix.db-types }}, Mautic ${{ matrix.mautic-versions }}
-    runs-on: ubuntu-22.04
+  phpunit:
+    name: PHPUnit ${{ matrix.php-versions }}, ${{ matrix.db-types }}, Mautic ${{ matrix.mautic-versions }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-versions: [8.0, 8.1]
-        db-types: ["mysql", "mariadb"]
-        mautic-versions: ["5.0", "5.x"]
+        php-versions: ['8.0', '8.1']
+        db-types: ['mysql', 'mariadb']
+        mautic-versions: ['5.0', '5.1', '5.x']
     services:
       database:
         image: ${{ matrix.db-types == 'mysql' && 'mysql:8.0' || 'mariadb:10.3' }}
@@ -40,6 +40,7 @@ jobs:
         with:
           repository: mautic/mautic
           ref: ${{ matrix.mautic-versions }}
+          fetch-depth: 0
 
       - name: Checkout this plugin
         uses: actions/checkout@v4
@@ -49,8 +50,8 @@ jobs:
       - name: Setup PHP Environment
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-version }}
-          ini-values: -dpcov.enabled=0, pcov.directory=."
+          php-version: ${{ matrix.php-versions }}
+          ini-values: pcov.enabled=0, pcov.directory=., pcov.exclude="~tests|themes|vendor~", opcache.enable_cli=0
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql, pdo_mysql
           coverage: pcov
 
@@ -91,36 +92,134 @@ jobs:
           DB_PORT: ${{ job.services.database.ports[3306] }}
         run: php bin/console mautic:plugins:install --env=dev
 
-      - name: Check PHP CS
-        run: bin/php-cs-fixer fix ${{ env.PLUGIN_DIR }} --config=.php-cs-fixer.php -v --dry-run --show-progress=dots --diff
+      - name: Run tests - database = ${{ matrix.db-types }}
+        run: |
+          rm -rf var/cache
+          export DB_PORT="${{ job.services.database.ports[3306] }}"
 
-      - name: Patch Mautic PHPStan config
-        run: php ${{ env.PLUGIN_DIR }}/.github/phpstan-config.php
+          if [[ "${{ matrix.php-versions }}" == "8.1" ]] && [[ "${{ matrix.db-types }}" == "mariadb" ]]; then
+            php -d zend.assertions=1 -d pcov.enabled=1 bin/phpunit -d memory_limit=2G --bootstrap vendor/autoload.php --configuration app/phpunit.xml.dist --coverage-clover=coverage.xml --log-junit=junit.xml -- ${{ env.PLUGIN_DIR }}/Tests
+          else
+            php -d zend.assertions=1 bin/phpunit -d memory_limit=1G --bootstrap vendor/autoload.php --configuration app/phpunit.xml.dist -- ${{ env.PLUGIN_DIR }}/Tests
+          fi
 
-      - name: Run PHPStan
-        run: cat phpstan.neon && SYMFONY_ENV=dev APP_ENV=dev APP_DEBUG=1 composer phpstan -- ${{ env.PLUGIN_DIR }}
-
-      - name: Rector
-        run: SYMFONY_ENV=test bin/console cache:warmup && composer rector -- --dry-run --no-progress-bar ${{ env.PLUGIN_DIR }}
-
-      - name: Twig Lint
-        run: bin/console lint:twig ${{ env.PLUGIN_DIR }}
-
-      - name: Run PHPUNIT tests
-        env:
-          DB_PORT: ${{ job.services.database.ports[3306] }}
-        run: XDEBUG_MODE=coverage APP_DEBUG=0 php -dzend.assertions=1 -dpcov.enabled=1 -dpcov.directory=. -dpcov.exclude="~tests|themes|vendor~" bin/phpunit -d memory_limit=1G --bootstrap vendor/autoload.php --configuration ${{ env.PLUGIN_DIR }}/phpunit.xml.dist --coverage-clover=${{ env.PLUGIN_DIR }}/coverage.xml --coverage-text
-
+      # maybe need to run phpunit differently to get the coverage from the bundle only?
       - name: Upload coverage report
         if: ${{ matrix.php-versions == '8.1' && matrix.db-types == 'mysql' && matrix.mautic-versions == '5.x' }} # upload just once, change for your matrix
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
           verbose: true
+          files: ./coverage.xml
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Save test results for future steps
+        if: ${{ matrix.php-versions == '8.1' && matrix.db-types == 'mysql' && matrix.mautic-versions == '5.x' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            ./junit.xml
+            ./coverage.xml
 
       - name: Upload logs as artifacts
+        if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.php-versions }}-${{ matrix.db-types }}-${{ matrix.mautic-versions }}
-          path: var/logs/
+          path: |
+            ./var/logs/*
+            ./media/files/temp/test*.html
+
+  # need to separate different code utilities to different processes, because if running in one "thread"
+  # there is an issue with the order/env variables/other means
+  # which does not allow the build to complete.
+  misc:
+    runs-on: ubuntu-latest
+
+    # these should contain latest stable PHP and Mautic versions
+    strategy:
+      fail-fast: false
+      matrix:
+        commands: [ 'PHPStan', 'CS Fixer', 'Rector', 'Twig Lint' ]
+        php-versions: [ '8.1' ]
+        mautic-versions: [ '5.x' ]
+
+    name: ${{ matrix.commands }} - ${{ matrix.php-versions }}
+
+    steps:
+      - name: Checkout Mautic
+        uses: actions/checkout@v4
+        with:
+          repository: mautic/mautic
+          ref: ${{ matrix.mautic-versions }}
+          fetch-depth: 0
+
+      - name: Checkout this plugin
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.PLUGIN_DIR }}
+
+      - name: Rector Cache
+        if: ${{matrix.commands == 'Rector'}}
+        uses: actions/cache@v4
+        with:
+          path: ./var/cache/rector
+          key: ${{ runner.os }}-rector-${{ hashFiles('**/composer.lock') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-rector-${{ hashFiles('**/composer.lock') }}
+            ${{ runner.os }}-rector-
+
+      - name: PHPStan Cache
+        if: ${{matrix.commands == 'PHPSTAN'}}
+        uses: actions/cache@v4
+        with:
+          path: ./var/phpstan-cache
+          key: ${{ runner.os }}-phpstan-${{ hashFiles('**/composer.lock') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-phpstan-${{ hashFiles('**/composer.lock') }}
+            ${{ runner.os }}-phpstan-
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ./var/cache/js
+          key: ${{ runner.os }}-js-${{ hashFiles('**/package-lock.json', 'webpack.config.js') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-js-${{ hashFiles('**/package-lock.json', 'webpack.config.js') }}
+            ${{ runner.os }}-js-
+
+      - name: Setup PHP, with composer and extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql, pdo_mysql
+
+      - name: Install dependencies
+        uses: "ramsey/composer-install@v3"
+        env:
+          NPM_CONFIG_CACHE: ./var/cache/js/npm
+        with:
+          composer-options: "--no-scripts"
+
+      - name: Run ${{ matrix.commands }}
+        run: |
+          if [[ "${{ matrix.commands }}" == "PHPStan" ]]; then
+            php ${{ env.PLUGIN_DIR }}/.github/phpstan-config.php
+            export SYMFONY_ENV=dev
+            export APP_ENV=dev
+            export APP_DEBUG=1
+            composer phpstan -- --no-progress ${{ env.PLUGIN_DIR }}
+          elif [[ "${{ matrix.commands }}" == "Rector" ]]; then
+            export SYMFONY_ENV=test
+            bin/console cache:warmup
+            bin/rector process --dry-run --ansi -- ${{ env.PLUGIN_DIR }}
+          elif [[ "${{ matrix.commands }}" == "Twig Lint" ]]; then
+            bin/console lint:twig ${{ env.PLUGIN_DIR }}
+          elif [[ "${{ matrix.commands }}" == "CS Fixer" ]]; then
+            bin/php-cs-fixer fix ${{ env.PLUGIN_DIR }} --config=.php-cs-fixer.php -v --dry-run --using-cache=no --show-progress=dots --diff
+          else
+            echo "Invalid command"
+            exit 1
+          fi

@@ -15,15 +15,29 @@ use Symfony\Component\HttpFoundation\Response;
 
 class BatchSegmentControllerTest extends MauticMysqlTestCase
 {
-    public function testContactsAreAddedToThenRemovedFromCampaignsInBatch(): void
+    /**
+     * When I add two Companies to the Company Segment “test1” via bulk action, the “# Companies” value in the Company Segments list view is increased by two.
+     */
+    public function testCompaniesAreAddedToThenRemovedFromSegmentsInBatch(): void
     {
         $this->loadFixtures([LoadCompanyData::class, LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
-        $segment   = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT);
+        $segment   = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
         $segmentId = $segment->getId();
         $companyA  = $this->getCompany('company-1');
         $companyB  = $this->getCompany('company-2');
         $companyC  = $this->getCompany('company-3');
 
+        // check initial state
+        $crawler = $this->client->request('GET', '/s/company-segments');
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        self::assertCount(3, $rows);
+        $segmentName = $segment->getName();
+        self::assertNotNull($segmentName);
+        self::assertStringContainsString($segmentName, $rows->eq(1)->filter('td')->eq(1)->text());
+        self::assertStringContainsString('No Companies', $rows->eq(1)->filter('td')->eq(2)->text());
+
+        // add companies
         $this->client->request(Request::METHOD_GET, '/s/company-segments/batch/company/view', [], [], $this->createAjaxHeaders());
         self::assertResponseIsSuccessful();
         $clientResponse = $this->client->getResponse();
@@ -52,7 +66,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertEquals(Response::HTTP_OK, $clientResponse->getStatusCode());
 
         // re-fetch data
-        $segment  = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT);
+        $segment  = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
         $companyA = $this->getCompany('company-1');
         $companyB = $this->getCompany('company-2');
         $companyC = $this->getCompany('company-3');
@@ -71,6 +85,17 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertIsString($response['flashes']);
         self::assertStringContainsString('3 companies affected', $response['flashes']);
 
+        // check list page
+        $crawler = $this->client->request('GET', '/s/company-segments');
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        self::assertCount(3, $rows);
+        $segmentName = $segment->getName();
+        self::assertNotNull($segmentName);
+        self::assertStringContainsString($segmentName, $rows->eq(1)->filter('td')->eq(1)->text());
+        self::assertStringContainsString('3 Companies', $rows->eq(1)->filter('td')->eq(2)->text());
+
+        // now remove companies
         $this->client->request(Request::METHOD_GET, '/s/company-segments/batch/company/view', [], [], $this->createAjaxHeaders());
         self::assertResponseIsSuccessful();
         $clientResponse = $this->client->getResponse();
@@ -99,7 +124,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertEquals(Response::HTTP_OK, $clientResponse->getStatusCode());
 
         // re-fetch data
-        $segment = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT);
+        $segment = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
 
         self::assertSame(
             [],
@@ -114,5 +139,14 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertTrue($response['closeModal']);
         self::assertIsString($response['flashes']);
         self::assertStringContainsString('3 companies affected', $response['flashes']);
+
+        $crawler = $this->client->request('GET', '/s/company-segments');
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        self::assertCount(3, $rows);
+        $segmentName = $segment->getName();
+        self::assertNotNull($segmentName);
+        self::assertStringContainsString($segmentName, $rows->eq(1)->filter('td')->eq(1)->text());
+        self::assertStringContainsString('No Companies', $rows->eq(1)->filter('td')->eq(2)->text());
     }
 }

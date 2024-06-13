@@ -24,4 +24,6 @@ parameters:
         - message: '#^Dead catch - Error is never thrown in the try block.$#'
           count: 1
           path: Tests/MauticMysqlTestCase.php
-
+        - message: '#loadMetadata\(\) has parameter \$metadata with generic class Doctrine\\ORM\\Mapping\\ClassMetadata but does not specify#'
+          count: 1
+          path: DTO/CompanySegmentAsLeadSegment.php

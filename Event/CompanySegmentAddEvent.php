@@ -8,7 +8,7 @@ use Mautic\LeadBundle\Entity\Company;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class CompanySegmentRemove extends Event
+class CompanySegmentAddEvent extends Event
 {
     public function __construct(private Company $company, private CompanySegment $companySegment)
     {

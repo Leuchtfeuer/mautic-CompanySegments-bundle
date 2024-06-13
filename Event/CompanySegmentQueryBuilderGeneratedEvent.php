@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event;
 
-use Mautic\LeadBundle\Entity\Company;
+use Mautic\LeadBundle\Segment\Query\QueryBuilder;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class CompanySegmentAdd extends Event
+class CompanySegmentQueryBuilderGeneratedEvent extends Event
 {
-    public function __construct(private Company $company, private CompanySegment $companySegment)
-    {
+    public function __construct(
+        private CompanySegment $companySegment,
+        private QueryBuilder $queryBuilder
+    ) {
     }
 
     public function getCompanySegment(): CompanySegment
@@ -19,8 +21,8 @@ class CompanySegmentAdd extends Event
         return $this->companySegment;
     }
 
-    public function getCompany(): Company
+    public function getQueryBuilder(): QueryBuilder
     {
-        return $this->company;
+        return $this->queryBuilder;
     }
 }

@@ -60,7 +60,7 @@ final class CompanySegmentEvents
      * The event listener receives a
      * MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentAdd instance.
      */
-    public const COMPANY_SEGMENT_ADD = CompanySegmentAdd::class;
+    public const COMPANY_SEGMENT_ADD = CompanySegmentAddEvent::class;
 
     /**
      * The event is dispatched when the company is added to company segment is removed.
@@ -68,5 +68,13 @@ final class CompanySegmentEvents
      * The event listener receives a
      * MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRemove instance.
      */
-    public const COMPANY_SEGMENT_REMOVE = CompanySegmentRemove::class;
+    public const COMPANY_SEGMENT_REMOVE = CompanySegmentRemoveEvent::class;
+
+    /**
+     * The event is dispatched when the lists are updated.
+     *
+     * The event listener receives a
+     * MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\SegmentPreProcessSegmentEvent instance.
+     */
+    public const SEGMENT_PRE_PROCESS_SEGMENT = SegmentPreProcessSegmentEvent::class;
 }
