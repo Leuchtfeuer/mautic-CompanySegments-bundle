@@ -17,6 +17,9 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class AjaxController extends CommonAjaxController
 {
+    /**
+     * @see \Mautic\LeadBundle\Controller\AjaxController::loadSegmentFilterFormAction
+     */
     public function loadCompanySegmentFilterFormAction(
         Request $request,
         FormFactoryInterface $formFactory,
@@ -63,6 +66,9 @@ class AjaxController extends CommonAjaxController
         );
     }
 
+    /**
+     * @see \Mautic\LeadBundle\Controller\AjaxController::getLeadCountAction
+     */
     public function getCompaniesCountAction(Request $request, CompanySegmentModel $companySegmentModel): JsonResponse
     {
         $id = InputHelper::clean($request->get('id'));

@@ -23,7 +23,7 @@ Variables
 {% endblock %}
 
 {% block content %}
-    {% set listCommand = 'mautic.company_segments.searchcommand.list'|trans %}
+    {% set listCommand = constant('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Model\\CompanySegmentModel::SEARCH_COMMAND')|trans %}
 
     {% if isIndex %}
         <div class="panel panel-default bdr-t-wdh-0">

@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use Mautic\CoreBundle\DependencyInjection\MauticCoreExtension;
+use Mautic\LeadBundle\Model\CompanyModel;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanyModelDecorated;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return function (ContainerConfigurator $configurator): void {
@@ -32,4 +34,7 @@ return function (ContainerConfigurator $configurator): void {
         'mautic.company_segments.model.company_segment',
         MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel::class
     );
+
+    $services->set(CompanyModelDecorated::class)
+        ->decorate(CompanyModel::class);
 };

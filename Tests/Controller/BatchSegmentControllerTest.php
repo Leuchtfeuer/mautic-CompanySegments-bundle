@@ -37,6 +37,12 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertStringContainsString($segmentName, $rows->eq(1)->filter('td')->eq(1)->text());
         self::assertStringContainsString('No Companies', $rows->eq(1)->filter('td')->eq(2)->text());
 
+        $companiesLink = $rows->eq(1)->filter('td')->eq(2)->filter('a')->link();
+        $crawler       = $this->client->click($companiesLink);
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(0, $rows);
+
         // add companies
         $this->client->request(Request::METHOD_GET, '/s/company-segments/batch/company/view', [], [], $this->createAjaxHeaders());
         self::assertResponseIsSuccessful();
@@ -95,6 +101,12 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertStringContainsString($segmentName, $rows->eq(1)->filter('td')->eq(1)->text());
         self::assertStringContainsString('3 Companies', $rows->eq(1)->filter('td')->eq(2)->text());
 
+        $companiesLink = $rows->eq(1)->filter('td')->eq(2)->filter('a')->link();
+        $crawler       = $this->client->click($companiesLink);
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(3, $rows);
+
         // now remove companies
         $this->client->request(Request::METHOD_GET, '/s/company-segments/batch/company/view', [], [], $this->createAjaxHeaders());
         self::assertResponseIsSuccessful();
@@ -148,5 +160,11 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertNotNull($segmentName);
         self::assertStringContainsString($segmentName, $rows->eq(1)->filter('td')->eq(1)->text());
         self::assertStringContainsString('No Companies', $rows->eq(1)->filter('td')->eq(2)->text());
+
+        $companiesLink = $rows->eq(1)->filter('td')->eq(2)->filter('a')->link();
+        $crawler       = $this->client->click($companiesLink);
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(0, $rows);
     }
 }

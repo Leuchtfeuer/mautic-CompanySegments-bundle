@@ -20,6 +20,9 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+/**
+ * @see \Mautic\LeadBundle\EventListener\TypeOperatorSubscriber
+ */
 class TypeOperatorSubscriber implements EventSubscriberInterface
 {
     public function __construct(

@@ -14,16 +14,6 @@ Variables
             },
             'routeBase': constant('MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Model\\CompanySegmentModel::PROPERTIES_FIELD'),
             'langVar': 'company_segments',
-            'custom': [
-                {
-                    'attr': {
-                        'data-toggle': 'ajax',
-                        'href': path('mautic_company_index', {'search': listCommand ~ ':' ~ item.alias}),
-                    },
-                    'icon': 'fa-users',
-                    'label': 'mautic.lead.list.view_companies',
-                },
-            ],
         }) }}
     </td>
     <td>
@@ -52,7 +42,7 @@ Variables
     <td class="visible-md visible-lg">
         <a class="label label-primary col-count"
            data-id="{{ item.id }}"
-           href="{{ path('mautic_company_index', {'search': 'mautic.lead.lead.searchcommand.list'|trans ~ ':' ~ item.alias}) }}"
+           href="{{ path('mautic_company_index', {'search': listCommand|trans ~ ':' ~ item.alias}) }}"
            data-toggle="ajax">{{ 'mautic.company_segments.companies_count'|trans({'%count%': companyCounts[item.id]}) }}</a>
     </td>
     <td class="visible-md visible-lg" title="{% if item.dateAdded %}{{ dateToFullConcat(item.dateAdded) }}{% endif %}">

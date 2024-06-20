@@ -18,11 +18,11 @@ use Mautic\LeadBundle\Entity\OperatorListTrait;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentAddEvent;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRebuildAddEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentEvents;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentFiltersChoicesEvent;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRemoveEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRebuildAddEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRebuildRemoveEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRemoveEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\SegmentPreProcessSegmentEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Exception\FieldNotFoundException;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Exception\SegmentNotFoundException;
@@ -48,6 +48,7 @@ class CompanySegmentModel extends FormModel
 {
     use OperatorListTrait;
     public const PROPERTIES_FIELD = CompanySegment::TABLE_NAME;
+    public const SEARCH_COMMAND   = 'mautic.company_segments.searchcommand.list'; // same as in messages.ini
 
     /**
      * @var array<array<array<mixed>>>

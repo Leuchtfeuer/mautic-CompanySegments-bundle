@@ -30,7 +30,7 @@ class CompanySegmentController extends AbstractStandardFormController
 {
     public const SESSION_KEY = 'company_segments';
 
-    public function __construct(// @phpstan-ignore-line The deprecation comes from Mautic itself, as there are no alternative.
+    public function __construct(
         FormFactoryInterface $formFactory,
         FormFieldHelper $fieldHelper,
         ManagerRegistry $managerRegistry,

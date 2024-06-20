@@ -43,6 +43,8 @@ class BatchSegmentController extends AbstractFormController
 
     /**
      * API for batch action.
+     *
+     * @see \Mautic\LeadBundle\Controller\BatchSegmentController::setAction
      */
     public function setAction(Request $request): JsonResponse
     {
@@ -76,6 +78,9 @@ class BatchSegmentController extends AbstractFormController
         ]);
     }
 
+    /**
+     * @see \Mautic\LeadBundle\Controller\BatchSegmentController::indexAction
+     */
     public function indexAction(): Response
     {
         $route    = $this->generateUrl('mautic_company_segments_batch_company_set');

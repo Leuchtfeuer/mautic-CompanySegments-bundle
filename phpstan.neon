@@ -27,3 +27,7 @@ parameters:
         - message: '#loadMetadata\(\) has parameter \$metadata with generic class Doctrine\\ORM\\Mapping\\ClassMetadata but does not specify#'
           count: 1
           path: DTO/CompanySegmentAsLeadSegment.php
+        - message: '#^Parameter \$factory of method MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Controller\\CompanySegmentController::__construct\(\) has typehint with deprecated class#'
+          count: 1
+          path: Controller/CompanySegmentController.php
+          reportUnmatched: false

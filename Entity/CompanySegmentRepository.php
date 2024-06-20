@@ -100,6 +100,9 @@ class CompanySegmentRepository extends CommonRepository
     }
 
     /**
+     * The override as in \Mautic\LeadBundle\Entity\LeadListRepository::addSearchCommandWhereClause.
+     * Stripped conditions for search.
+     *
      * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
      *
      * @phpstan-param mixed $filter
