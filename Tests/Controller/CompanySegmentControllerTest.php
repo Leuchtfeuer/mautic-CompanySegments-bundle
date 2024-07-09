@@ -9,6 +9,7 @@ use Mautic\UserBundle\DataFixtures\ORM\LoadUserData;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\DataFixtures\ORM\LoadCompanySegmentData;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Tests\EnablePluginTrait;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Tests\MauticMysqlTestCase;
+use Symfony\Component\HttpFoundation\Request;
 
 class CompanySegmentControllerTest extends MauticMysqlTestCase
 {
@@ -25,7 +26,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
     {
         $this->loadFixtures([LoadUserData::class, LoadRoleData::class], false);
         $segmentName = 'Segment test';
-        $crawler     = $this->client->request('GET', '/s/company-segments');
+        $crawler     = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         self::assertCount(0, $crawler->filter('#companyListTable > tbody'));
@@ -46,10 +47,37 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         self::assertCount(1, $crawler->filter('.page-header'));
         self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
         self::assertCount(1, $crawler->filter('#companyListTable > tbody > tr'));
         self::assertStringContainsString($segmentName, $crawler->filter('#companyListTable > tbody > tr')->eq(0)->filter('td')->eq(1)->text());
+    }
+
+    public function testCreateCancel(): void
+    {
+        $this->loadFixtures([LoadUserData::class, LoadRoleData::class], false);
+        $crawler     = $this->client->request(Request::METHOD_GET, '/s/company-segments');
+        self::assertResponseIsSuccessful();
+
+        self::assertCount(0, $crawler->filter('#companyListTable > tbody'));
+
+        $links = $crawler->filter('#toolbar a');
+        self::assertCount(1, $links);
+        $crawler = $this->client->clickLink('New');
+        self::assertResponseIsSuccessful();
+
+        $form = $crawler->filter('[name="company_segments"]')->form([
+            'company_segments' => [],
+        ]);
+        $values = $form->getPhpValues();
+
+        $values['company_segments']['buttons']['cancel'] = '';
+        $this->client->request($form->getMethod(), $form->getUri(), $values);
+        self::assertResponseIsSuccessful();
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $crawler->filter('#companyListTable > tbody > tr'));
     }
 
     public function testEdit(): void
@@ -57,7 +85,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $this->loadFixtures([LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
 
         $segmentName = 'Segment test';
-        $crawler     = $this->client->request('GET', '/s/company-segments');
+        $crawler     = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
@@ -88,7 +116,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         self::assertCount(1, $crawler->filter('.page-header'));
         self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
         $rows = $crawler->filter('#companyListTable > tbody > tr');
         self::assertCount(3, $rows);
@@ -99,7 +127,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
     {
         $this->loadFixtures([LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
 
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
@@ -116,7 +144,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
 
         $link = $crawler->filter('#toolbar a')->eq(3);
         self::assertSame('Delete', $link->text());
-        $crawler = $this->client->click($link->link('POST'));
+        $crawler = $this->client->click($link->link(Request::METHOD_POST));
         self::assertResponseIsSuccessful();
         self::assertCount(2, $crawler->filter('#companyListTable > tbody > tr'));
     }
@@ -125,7 +153,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
     {
         $this->loadFixtures([LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
 
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
@@ -137,7 +165,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $link = $crawler->filter('.page-list-actions')->filter('a')->eq(0);
         self::assertSame('Delete Selected', $link->text());
 
-        $crawler = $this->client->request('POST', $link->attr('href').'&ids='.json_encode([$companySegment->getId()], JSON_THROW_ON_ERROR));
+        $crawler = $this->client->request(Request::METHOD_POST, $link->attr('href').'&ids='.json_encode([$companySegment->getId()], JSON_THROW_ON_ERROR));
         self::assertResponseIsSuccessful();
         self::assertCount(2, $crawler->filter('#companyListTable > tbody > tr'));
     }
@@ -147,7 +175,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $this->loadFixtures([LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
 
         $segmentName = 'Segment test';
-        $crawler     = $this->client->request('GET', '/s/company-segments');
+        $crawler     = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
@@ -178,7 +206,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         self::assertCount(1, $crawler->filter('.page-header'));
         self::assertStringContainsString($segmentName, $crawler->filter('.page-header')->text());
 
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
         $rows = $crawler->filter('#companyListTable > tbody > tr');
         self::assertCount(4, $rows);

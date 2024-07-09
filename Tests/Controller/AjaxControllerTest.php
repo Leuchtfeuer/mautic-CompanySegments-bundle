@@ -21,7 +21,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
 {
     public function testCompanySegmentFilter(): void
     {
-        $this->client->xmlHttpRequest('POST', '/s/ajax', [
+        $this->client->xmlHttpRequest(Request::METHOD_POST, '/s/ajax', [
             'action'      => 'plugin:LeuchtfeuerCompanySegments:loadCompanySegmentFilterForm',
             'fieldAlias'  => 'date_modified',
             'fieldObject' => 'company_segments',
@@ -69,7 +69,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         self::assertCount(0, $companySegmentDependent->getCompanies());
 
         // Though the DB contains "proper" counts of companies in segments, the command need to be executed to fill in the cache.
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
         $rows = $crawler->filter('#companyListTable > tbody > tr');
         self::assertCount(3, $rows);
@@ -98,7 +98,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         ]);
         self::assertSame(0, $commandResult->getStatusCode());
 
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
         $rows = $crawler->filter('#companyListTable > tbody > tr');
         self::assertCount(3, $rows);
@@ -118,7 +118,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
     private function checkGetCompaniesCountAjaxRequest(CompanySegment $companySegment, string $html, int $companiesCount): void
     {
         $parameter = ['id' => $companySegment->getId()];
-        $this->client->request(Request::METHOD_POST, '/s/ajax?action=plugin:LeuchtfeuerCompanySegments:getCompaniesCount', $parameter);
+        $this->client->request(Request::METHOD_GET, '/s/ajax?action=plugin:LeuchtfeuerCompanySegments:getCompaniesCount', $parameter);
         $clientResponse = $this->client->getResponse();
 
         self::assertSame(Response::HTTP_OK, $clientResponse->getStatusCode());
