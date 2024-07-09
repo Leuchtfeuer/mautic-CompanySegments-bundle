@@ -29,10 +29,10 @@ return [
         'main' => [
             'items' => [
                 'mautic.company_segments.menu.index' => [
-                    'iconClass' => 'fa-pie-chart',
                     'access'    => ['lead:leads:viewown', 'lead:leads:viewother'],
                     'route'     => 'mautic_company_segments_index',
-                    'priority'  => 65,
+                    'parent'    => 'mautic.companies.menu.index',
+                    'priority'  => 15,
                     'checks'    => [
                         'integration' => [
                             'LeuchtfeuerCompanySegments' => [
@@ -40,6 +40,13 @@ return [
                             ],
                         ],
                     ],
+                ],
+                'mautic.companies.menu.sub.index' => [
+                    'id'        => 'mautic.companies.menu.index',
+                    'parent'    => 'mautic.companies.menu.index',
+                    'route'     => 'mautic_company_index',
+                    'access'    => ['lead:leads:viewother'],
+                    'priority'  => 100,
                 ],
             ],
         ],
