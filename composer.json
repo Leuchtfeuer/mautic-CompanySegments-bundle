@@ -1,0 +1,67 @@
+{
+    "name": "leuchtfeuer/mautic-companysegments-bundle",
+    "description": "Provide a 2nd type of Segments which can contain Companies (and allows segment filters)",
+    "license": "GPL-3.0",
+    "type": "mautic-plugin",
+    "homepage": "https://www.Leuchtfeuer.com",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "authors": [{
+        "name": "Leuchtfeuer Digital Marketing GmbH",
+        "email": "mautic-plugins@Leuchtfeuer.com"
+    }],
+    "require": {
+        "php": "^8.0",
+        "ext-json": "*",
+        "mautic/core-lib": "^5.0"
+    },
+    "extra": {
+        "install-directory-name": "LeuchtfeuerCompanySegmentsBundle"
+    },
+    "require-dev": {
+        "liip/functional-test-bundle": "^4.2",
+        "liip/test-fixtures-bundle": "^1.6",
+        "phpunit/phpunit": "^9.5",
+        "friendsofphp/php-cs-fixer": "^3.4",
+        "symfony/browser-kit": "^5.4",
+        "phpstan/phpstan": "^1.0",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "phpstan/phpstan-strict-rules": "^1.0",
+        "rector/rector": "^1.0.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\": ""
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Tests\\": "Tests"
+        }
+    },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/mautic/FOSOAuthServerBundle.git"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/mautic/SpBundle.git"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/mautic/SymfonyBridgeBundle.git"
+        }
+    ],
+    "scripts": {
+        "fixcs": "./vendor/bin/php-cs-fixer fix --config .php-cs-fixer.php --show-progress dots -v",
+        "phpstan": "./vendor/bin/phpstan"
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/flex": true,
+            "php-http/discovery": false
+        }
+    }
+}

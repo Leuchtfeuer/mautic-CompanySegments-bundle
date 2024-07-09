@@ -1,0 +1,33 @@
+includes:
+        - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+        - vendor/phpstan/phpstan-strict-rules/rules.neon
+        - vendor/phpstan/phpstan-phpunit/extension.neon
+        - vendor/phpstan/phpstan-phpunit/rules.neon
+
+parameters:
+    level: max
+    treatPhpDocTypesAsCertain: false
+    paths:
+        - .
+    excludePaths:
+        - vendor
+    scanFiles:
+        - vendor/mautic/core-lib/config/config_test.php
+    ignoreErrors:
+        - message: "#has parameter \\$metadata with generic class Doctrine\\\\ORM\\\\Mapping\\\\ClassMetadata#"
+          count: 1
+          path: Entity/CompanySegment.php
+          ### below is added to base Mautic phpstan.neon ###
+        - message: '#has typehint with deprecated class Mautic\\CoreBundle\\Factory\\MauticFactory#'
+          count: 1
+          path: Controller/BatchSegmentController.php
+        - message: '#^Dead catch - Error is never thrown in the try block.$#'
+          count: 1
+          path: Tests/MauticMysqlTestCase.php
+        - message: '#loadMetadata\(\) has parameter \$metadata with generic class Doctrine\\ORM\\Mapping\\ClassMetadata but does not specify#'
+          count: 1
+          path: DTO/CompanySegmentAsLeadSegment.php
+        - message: '#^Parameter \$factory of method MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Controller\\CompanySegmentController::__construct\(\) has typehint with deprecated class#'
+          count: 1
+          path: Controller/CompanySegmentController.php
+          reportUnmatched: false
