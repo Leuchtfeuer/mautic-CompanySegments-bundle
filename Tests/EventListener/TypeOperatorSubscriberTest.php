@@ -21,7 +21,6 @@ use Mautic\LeadBundle\Provider\FieldChoicesProviderInterface;
 use Mautic\LeadBundle\Provider\TypeOperatorProviderInterface;
 use Mautic\LeadBundle\Segment\OperatorOptions;
 use Mautic\StageBundle\Model\StageModel;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentEvents;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentFiltersChoicesEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener\TypeOperatorSubscriber;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
@@ -538,7 +537,7 @@ class TypeOperatorSubscriberTest extends TestCase
             LeadEvents::ADJUST_FILTER_FORM_TYPE_FOR_FIELD          => [
                 ['onSegmentFilterFormHandleSelect', 400],
             ],
-            CompanySegmentEvents::SEGMENT_FILTERS_CHOICES_ON_GENERATE => [
+            CompanySegmentFiltersChoicesEvent::class => [
                 ['onGenerateSegmentFiltersAddStaticFields', 0],
                 ['onGenerateSegmentFiltersAddCustomFields', 0],
             ],

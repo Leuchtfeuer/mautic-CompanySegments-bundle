@@ -21,7 +21,7 @@ class CompanySegmentActionModel
      * @param array<int> $companyIds
      * @param array<int> $segmentIds
      */
-    public function addCompanies(array $companyIds, array $segmentIds): void
+    public function addCompanies(array $companyIds, array $segmentIds, bool $manuallyAdded = true): void
     {
         $companies = $this->getCompaniesByIds($companyIds);
 
@@ -30,7 +30,7 @@ class CompanySegmentActionModel
                 continue;
             }
 
-            $this->companySegmentModel->addCompany($company, $segmentIds);
+            $this->companySegmentModel->addCompany($company, $segmentIds, $manuallyAdded);
         }
     }
 
@@ -38,16 +38,16 @@ class CompanySegmentActionModel
      * @param array<int> $companyIds
      * @param array<int> $segmentIds
      */
-    public function removeCompanies(array $companyIds, array $segmentIds): void
+    public function removeCompanies(array $companyIds, array $segmentIds, bool $manuallyRemoved = true): void
     {
-        $contacts = $this->getCompaniesByIds($companyIds);
+        $companies = $this->getCompaniesByIds($companyIds);
 
-        foreach ($contacts as $contact) {
-            if (!$this->canEditCompany($contact)) {
+        foreach ($companies as $company) {
+            if (!$this->canEditCompany($company)) {
                 continue;
             }
 
-            $this->companySegmentModel->removeCompany($contact, $segmentIds);
+            $this->companySegmentModel->removeCompany($company, $segmentIds, $manuallyRemoved);
         }
     }
 

@@ -333,7 +333,7 @@ class CompanySegmentController extends AbstractStandardFormController
             'viewParameters' => [
                 'usageStats'   => $this->segmentDependencies->getChannelsIds($objectId),
                 'segment'      => $segment,
-                'segmentCount' => current($model->getRepository()->getCompanyCount([$objectId])),
+                'segmentCount' => current($model->getCompaniesSegmentsRepository()->getCompanyCount([$objectId])),
                 'permissions'  => $security->isGranted([
                     'lead:leads:editown',
                     $this->getPermissionBase().':viewother',
