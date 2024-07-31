@@ -29,7 +29,7 @@ class AjaxController extends CommonAjaxController
         $fieldAlias  = InputHelper::clean($request->request->get('fieldAlias'));
         $fieldObject = InputHelper::clean($request->request->get('fieldObject'));
         $operator    = InputHelper::clean($request->request->get('operator'));
-        $filterNum   = (int) $request->request->get('filterNum');
+        $filterNum   = $request->request->getInt('filterNum');
 
         if (!is_string($fieldAlias) || !is_string($fieldObject) || !is_string($operator)) {
             throw new BadRequestHttpException();
@@ -71,7 +71,7 @@ class AjaxController extends CommonAjaxController
      */
     public function getCompaniesCountAction(Request $request, CompanySegmentModel $companySegmentModel): JsonResponse
     {
-        $id = InputHelper::clean($request->get('id'));
+        $id = InputHelper::clean($request->query->get('id'));
         $id = is_numeric($id) ? (int) $id : 0;
 
         $companyExists = 1 === $companySegmentModel->getRepository()->count(['id' => $id]);

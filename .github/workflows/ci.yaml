@@ -142,11 +142,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        commands: [ 'PHPStan', 'CS Fixer', 'Rector', 'Twig Lint' ]
-        php-versions: [ '8.1' ]
-        mautic-versions: [ '5.x' ]
+        commands: ['PHPStan', 'CS Fixer', 'Rector', 'Twig Lint']
+        php-versions: ['8.1']
+        mautic-versions: ['5.x']
 
-    name: ${{ matrix.commands }} - ${{ matrix.php-versions }}
+    name: ${{ matrix.commands }} - ${{ matrix.php-versions }} - ${{ matrix.mautic-versions }}
 
     steps:
       - name: Checkout Mautic
@@ -172,7 +172,7 @@ jobs:
             ${{ runner.os }}-rector-
 
       - name: PHPStan Cache
-        if: ${{matrix.commands == 'PHPSTAN'}}
+        if: ${{matrix.commands == 'PHPStan'}}
         uses: actions/cache@v4
         with:
           path: ./var/phpstan-cache
@@ -195,18 +195,19 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql, pdo_mysql
+          ini-values: opcache.enable_cli=0
 
       - name: Install dependencies
         uses: "ramsey/composer-install@v3"
         env:
           NPM_CONFIG_CACHE: ./var/cache/js/npm
-        with:
-          composer-options: "--no-scripts"
 
       - name: Run ${{ matrix.commands }}
         run: |
-          if [[ "${{ matrix.commands }}" == "PHPStan" ]]; then
+          if [[ "${{ matrix.commands }}" == "PHPStan" ]]; then 
+            composer remove --dev rector/rector
             php ${{ env.PLUGIN_DIR }}/.github/phpstan-config.php
+            cat phpstan.neon
             export SYMFONY_ENV=dev
             export APP_ENV=dev
             export APP_DEBUG=1

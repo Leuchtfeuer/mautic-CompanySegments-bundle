@@ -26,7 +26,11 @@ if (false === $mauticPhpStanConfig) {
     throw new \RuntimeException('Unable to read Mautic phpstan.neon.');
 }
 
-$phpStanPatch = \str_replace('ignoreErrors:', 'ignoreErrors:'.PHP_EOL.$phpStanPatch, $mauticPhpStanConfig);
+$phpStanPatch = \str_replace(
+    ['ignoreErrors:', 'excludePaths:'],
+    ['ignoreErrors:'.PHP_EOL.$phpStanPatch, 'excludePaths:'.PHP_EOL."\t\t- plugins/LeuchtfeuerCompanySegmentsBundle/rector.php"],
+    $mauticPhpStanConfig
+);
 
 $result = file_put_contents(__DIR__.'/../../../phpstan.neon', $phpStanPatch);
 

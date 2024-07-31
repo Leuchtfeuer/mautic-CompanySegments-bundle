@@ -209,9 +209,6 @@ class CompanySegmentController extends AbstractStandardFormController
                 ]);
             }
 
-            $id = $companySegment->getId();
-            \assert(null !== $id);
-
             if ($cancelled || ($valid && $this->getFormButton($form, ['buttons', 'save'])->isClicked())) {
                 return $this->postActionRedirect([
                     'returnUrl'       => $returnUrl,
@@ -225,6 +222,9 @@ class CompanySegmentController extends AbstractStandardFormController
             }
 
             if ($valid) {
+                $id = $companySegment->getId();
+                \assert(null !== $id);
+
                 return $this->editAction($request, $id, true);
             }
         }
