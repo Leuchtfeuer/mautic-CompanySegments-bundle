@@ -29,7 +29,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $crawler     = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
-        self::assertCount(0, $crawler->filter('#companyListTable > tbody'));
+        self::assertCount(0, $crawler->filter('#companySegmentsTable > tbody'));
 
         $links = $crawler->filter('#toolbar a');
         self::assertCount(1, $links);
@@ -49,8 +49,8 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        self::assertCount(1, $crawler->filter('#companyListTable > tbody > tr'));
-        self::assertStringContainsString($segmentName, $crawler->filter('#companyListTable > tbody > tr')->eq(0)->filter('td')->eq(1)->text());
+        self::assertCount(1, $crawler->filter('#companySegmentsTable > tbody > tr'));
+        self::assertStringContainsString($segmentName, $crawler->filter('#companySegmentsTable > tbody > tr')->eq(0)->filter('td')->eq(1)->text());
     }
 
     public function testCreateCancel(): void
@@ -91,7 +91,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentName, $rows->eq(1)->filter('td')->eq(1)->text());
         $link = $rows->eq(1)->filter('td')->eq(1)->filter('a')->link();
@@ -118,7 +118,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($segmentName, $rows->eq(2)->filter('td')->eq(1)->text());
     }
@@ -133,7 +133,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentName, $rows->eq(1)->filter('td')->eq(1)->text());
         $link = $rows->eq(1)->filter('td')->eq(1)->filter('a')->link();
@@ -146,7 +146,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         self::assertSame('Delete', $link->text());
         $crawler = $this->client->click($link->link(Request::METHOD_POST));
         self::assertResponseIsSuccessful();
-        self::assertCount(2, $crawler->filter('#companyListTable > tbody > tr'));
+        self::assertCount(2, $crawler->filter('#companySegmentsTable > tbody > tr'));
     }
 
     public function testBatchDelete(): void
@@ -159,7 +159,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentName, $rows->eq(1)->filter('td')->eq(1)->text());
         $link = $crawler->filter('.page-list-actions')->filter('a')->eq(0);
@@ -167,7 +167,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_POST, $link->attr('href').'&ids='.json_encode([$companySegment->getId()], JSON_THROW_ON_ERROR));
         self::assertResponseIsSuccessful();
-        self::assertCount(2, $crawler->filter('#companyListTable > tbody > tr'));
+        self::assertCount(2, $crawler->filter('#companySegmentsTable > tbody > tr'));
     }
 
     public function testClone(): void
@@ -181,7 +181,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentName, $rows->eq(1)->filter('td')->eq(1)->text());
         $link = $rows->eq(1)->filter('td')->eq(1)->filter('a')->link();
@@ -208,7 +208,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(4, $rows);
         self::assertStringContainsString($companySegmentName, $rows->eq(1)->filter('td')->eq(1)->text());
         self::assertStringContainsString($segmentName, $rows->eq(3)->filter('td')->eq(1)->text());

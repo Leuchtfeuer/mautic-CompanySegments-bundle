@@ -30,7 +30,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         // check initial state
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         $segmentName = $segment->getName();
         self::assertNotNull($segmentName);
@@ -94,7 +94,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         // check list page
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         $segmentName = $segment->getName();
         self::assertNotNull($segmentName);
@@ -154,7 +154,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         $segmentName = $segment->getName();
         self::assertNotNull($segmentName);

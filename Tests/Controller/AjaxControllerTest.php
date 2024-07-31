@@ -71,7 +71,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         // Though the DB contains "proper" counts of companies in segments, the command need to be executed to fill in the cache.
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         $companySegmentManualName = $companySegmentManual->getName();
         self::assertNotNull($companySegmentManualName);
@@ -100,7 +100,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
         self::assertStringContainsString('2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
