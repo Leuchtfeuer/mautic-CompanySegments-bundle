@@ -10,6 +10,7 @@ use Mautic\LeadBundle\Entity\CompanyRepository;
 use Mautic\LeadBundle\Event\CompanyBuildSearchEvent;
 use Mautic\LeadBundle\LeadEvents;
 use Mautic\LeadBundle\Segment\Query\QueryBuilder;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -45,14 +46,14 @@ class CompanySearchSubscriber implements EventSubscriberInterface
 
         $sq = (new QueryBuilder($this->connection));
         $sq->select('1')
-            ->from(MAUTIC_TABLE_PREFIX.CompanySegment::RELATION_TABLE_NAME, CompanySegment::DEFAULT_RELATIONS_ALIAS)
+            ->from(MAUTIC_TABLE_PREFIX.CompaniesSegments::TABLE_NAME, CompaniesSegments::RELATIONS_NAME)
             ->where(
                 $sq->expr()->and(
                     $sq->expr()->eq(
                         $this->companyRepository->getTableAlias().'.id',
-                        CompanySegment::DEFAULT_RELATIONS_ALIAS.'.company_id'
+                        CompaniesSegments::RELATIONS_NAME.'.company_id'
                     ),
-                    $sq->expr()->in(CompanySegment::DEFAULT_RELATIONS_ALIAS.'.segment_id', ':'.$uniqueParameterAlias)
+                    $sq->expr()->in(CompaniesSegments::RELATIONS_NAME.'.segment_id', ':'.$uniqueParameterAlias)
                 )
             );
 

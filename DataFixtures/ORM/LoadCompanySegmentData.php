@@ -13,9 +13,9 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 
 class LoadCompanySegmentData extends AbstractFixture implements OrderedFixtureInterface
 {
-    public const COMPANY_SEGMENT_1 = 'company-segment-1';
-    public const COMPANY_SEGMENT_2 = 'company-segment-2';
-    public const COMPANY_SEGMENT_3 = 'company-segment-3';
+    public const COMPANY_SEGMENT_NO_FILTERS     = 'company-segment-1';
+    public const COMPANY_SEGMENT_FILTER_REVENUE = 'company-segment-2';
+    public const COMPANY_SEGMENT_DEPENDENT      = 'company-segment-3';
 
     public function load(ObjectManager $manager): void
     {
@@ -27,7 +27,7 @@ class LoadCompanySegmentData extends AbstractFixture implements OrderedFixtureIn
         $companySegment1->setAlias('test1');
         $companySegment1->setCreatedBy($adminUser);
         $companySegment1->setFilters([]);
-        $this->setReference(self::COMPANY_SEGMENT_1, $companySegment1);
+        $this->setReference(self::COMPANY_SEGMENT_NO_FILTERS, $companySegment1);
         $manager->persist($companySegment1);
 
         $companySegment = new CompanySegment();
@@ -48,10 +48,10 @@ class LoadCompanySegmentData extends AbstractFixture implements OrderedFixtureIn
                 'display'  => '',
             ],
         ]);
-        $this->setReference(self::COMPANY_SEGMENT_2, $companySegment);
+        $this->setReference(self::COMPANY_SEGMENT_FILTER_REVENUE, $companySegment);
         $manager->persist($companySegment);
 
-        $manager->flush(); // to gain a new ID
+        $manager->flush(); // to gain a new ID for segment "no filters"
 
         $companySegment = new CompanySegment();
         $companySegment->setName('Test 3');
@@ -71,7 +71,7 @@ class LoadCompanySegmentData extends AbstractFixture implements OrderedFixtureIn
                 'display'  => '',
             ],
         ]);
-        $this->setReference(self::COMPANY_SEGMENT_3, $companySegment);
+        $this->setReference(self::COMPANY_SEGMENT_DEPENDENT, $companySegment);
         $manager->persist($companySegment);
 
         $manager->flush();

@@ -88,7 +88,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $crawler     = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
-        $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
+        $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
         $rows = $crawler->filter('#companyListTable > tbody > tr');
@@ -130,7 +130,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
-        $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
+        $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
         $rows = $crawler->filter('#companyListTable > tbody > tr');
@@ -156,7 +156,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
-        $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
+        $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
         $rows = $crawler->filter('#companyListTable > tbody > tr');
@@ -178,7 +178,7 @@ class CompanySegmentControllerTest extends MauticMysqlTestCase
         $crawler     = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
 
-        $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
+        $companySegment     = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
         $rows = $crawler->filter('#companyListTable > tbody > tr');

@@ -8,6 +8,7 @@ use Mautic\LeadBundle\Segment\ContactSegmentFilterFactory;
 use Mautic\LeadBundle\Segment\Exception\SegmentQueryException;
 use Mautic\LeadBundle\Segment\Query\QueryBuilder;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\DTO\CompanySegmentAsLeadSegment;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Segment\Query\CompanyBatchLimiterTrait;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Segment\Query\CompanySegmentQueryBuilder;
@@ -48,7 +49,7 @@ class CompanySegmentService
             ];
         }
 
-        $qb = $this->getTotalSegmentContactsQuery($companySegment);
+        $qb = $this->getTotalSegmentCompaniesQuery($companySegment);
 
         $qb = $this->companySegmentQueryBuilder->wrapInCount($qb);
 
@@ -236,13 +237,18 @@ class CompanySegmentService
 
     /**
      * @throws \Exception
+     *
+     * @see \Mautic\LeadBundle\Segment\ContactSegmentService::getTotalSegmentContactsQuery
      */
-    private function getTotalSegmentContactsQuery(CompanySegment $companySegment): QueryBuilder
+    private function getTotalSegmentCompaniesQuery(CompanySegment $companySegment): QueryBuilder
     {
         $contactSegment = new CompanySegmentAsLeadSegment($companySegment);
         $segmentFilters = $this->contactSegmentFilterFactory->getSegmentFilters($contactSegment);
 
-        return $this->companySegmentQueryBuilder->assembleCompaniesSegmentQueryBuilder($companySegment, $segmentFilters);
+        $queryBuilder = $this->companySegmentQueryBuilder->assembleCompaniesSegmentQueryBuilder($companySegment, $segmentFilters);
+        $queryBuilder = $this->companySegmentQueryBuilder->addManuallySubscribedQuery($queryBuilder, $companySegment);
+
+        return $this->companySegmentQueryBuilder->addManuallyUnsubscribedQuery($queryBuilder, $companySegment);
     }
 
     /**
@@ -266,12 +272,13 @@ class CompanySegmentService
 
         $qbO  = $queryBuilder->createQueryBuilder();
         $qbO->select('orp.company_id as id, orp.segment_id');
-        $qbO->from(MAUTIC_TABLE_PREFIX.CompanySegment::RELATION_TABLE_NAME, 'orp');
+        $qbO->from(MAUTIC_TABLE_PREFIX.CompaniesSegments::TABLE_NAME, 'orp');
         $qbO->setParameters($queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
         $qbO->andWhere($expr->eq('orp.segment_id', ':orpsegid'));
+        $qbO->andWhere($expr->eq('orp.manually_added', $expr->literal(0)));
         $qbO->andWhere($expr->notIn('orp.company_id', $queryBuilder->getSQL()));
         $qbO->setParameter('orpsegid', $companySegment->getId());
-        $this->addMinMaxLimiters($qbO, $batchLimiters, CompanySegment::RELATION_TABLE_NAME, 'company_id');
+        $this->addMinMaxLimiters($qbO, $batchLimiters, CompaniesSegments::TABLE_NAME, 'company_id');
 
         if (null !== $limit && $limit > 0) {
             $qbO->setMaxResults($limit);

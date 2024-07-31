@@ -100,7 +100,7 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
             return self::FAILURE;
         }
 
-        $max = (int) $max;
+        $max = null !== $max ? (int) $max : null;
 
         if (!$this->checkRunStatus($input, $output, $id)) {
             return Command::SUCCESS;
@@ -176,6 +176,8 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
             $companySegment->setLastBuiltTime($rebuildTime);
             $this->companySegmentModel->saveEntity($companySegment);
         }
+
+        $this->companySegmentModel->getRepository()->detachEntity($companySegment);
 
         $output->writeln(
             '<comment>'.$this->translator->trans('mautic.company_segments.rebuild.companies_affected', ['%companies%' => $processed]).'</comment>'

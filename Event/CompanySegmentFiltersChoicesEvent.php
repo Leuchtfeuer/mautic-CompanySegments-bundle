@@ -8,6 +8,9 @@ use Mautic\CoreBundle\Event\AbstractCustomRequestEvent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+/**
+ * The event is dispatched when the choices for campaign segment filters are generated.
+ */
 class CompanySegmentFiltersChoicesEvent extends AbstractCustomRequestEvent
 {
     /**

@@ -8,6 +8,9 @@ use Mautic\LeadBundle\Segment\Query\QueryBuilder;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use Symfony\Contracts\EventDispatcher\Event;
 
+/**
+ * The event is dispatched when the queryBuilder for segment was generated.
+ */
 class CompanySegmentQueryBuilderGeneratedEvent extends Event
 {
     public function __construct(

@@ -19,11 +19,9 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 class CompanySegment extends FormEntity
 {
-    public const TABLE_NAME              = 'company_segments';
-    public const RELATION_TABLE_NAME     = 'company_segment_xref';
-    public const RELATED_ENTITY          = 'company';
-    public const DEFAULT_ALIAS           = 'cs';
-    public const DEFAULT_RELATIONS_ALIAS = 'csx';
+    public const TABLE_NAME    = 'company_segments';
+    public const LINKED_ENTITY = 'company';
+    public const DEFAULT_ALIAS = 'cs';
 
     private ?int $id = null;
 
@@ -43,9 +41,9 @@ class CompanySegment extends FormEntity
     private array $filters = [];
 
     /**
-     * @var Collection<int, Company>
+     * @var Collection<int, CompaniesSegments>
      */
-    private Collection $companies;
+    private Collection $companiesSegments;
 
     private ?\DateTimeInterface $lastBuiltDate = null;
 
@@ -53,7 +51,7 @@ class CompanySegment extends FormEntity
 
     public function __construct()
     {
-        $this->companies = new ArrayCollection();
+        $this->companiesSegments = new ArrayCollection();
     }
 
     public static function loadMetadata(ORMClassMetadata $metadata): void
@@ -63,7 +61,7 @@ class CompanySegment extends FormEntity
         $builder->setTable(self::TABLE_NAME)
             ->setCustomRepositoryClass(CompanySegmentRepository::class)
             ->addLifecycleEvent('initializeLastBuiltDate', 'prePersist')
-            ->addIndex(['alias'], 'company_list_alias');
+            ->addIndex(['alias'], 'company_segment_alias');
 
         $builder->addIdColumns();
 
@@ -77,11 +75,9 @@ class CompanySegment extends FormEntity
 
         $builder->addField('filters', 'json');
 
-        $builder->createManyToMany('companies', Company::class)
-            ->setJoinTable(self::RELATION_TABLE_NAME)
-            ->setIndexBy('id')
-            ->addInverseJoinColumn('company_id', 'id', false, false, 'CASCADE')
-            ->addJoinColumn('segment_id', 'id', true, false, 'CASCADE')
+        $builder->createOneToMany('companiesSegments', CompaniesSegments::class)
+            ->mappedBy('companySegment')
+            ->fetchExtraLazy()
             ->build();
 
         $builder->createField('lastBuiltDate', 'datetime')
@@ -258,34 +254,43 @@ class CompanySegment extends FormEntity
     /**
      * The getter is used in tests.
      *
-     * @return Collection<int, Company>
+     * @return Collection<int, CompaniesSegments>
      */
-    public function getCompanies(): Collection
+    public function getCompaniesSegments(): Collection
     {
-        return $this->companies;
+        return $this->companiesSegments;
     }
 
-    public function addCompany(Company $company): void
+    public function addCompaniesSegment(CompaniesSegments $companiesSegments): void
     {
-        if ($this->companies->contains($company)) {
+        if ($this->companiesSegments->contains($companiesSegments)) {
             return;
         }
 
-        $this->companies->add($company);
-    }
-
-    public function removeCompany(Company $company): void
-    {
-        if (!$this->companies->contains($company)) {
+        if ($this->companiesSegments->exists(static function (int $key, CompaniesSegments $companySegment) use ($companiesSegments): bool {
+            return $companySegment->getCompanySegment() === $companiesSegments->getCompanySegment()
+                && $companySegment->getCompany() === $companiesSegments->getCompany();
+        })) {
             return;
         }
 
-        $this->companies->removeElement($company);
+        $this->companiesSegments->add($companiesSegments);
+    }
+
+    public function removeCompaniesSegment(CompaniesSegments $companiesSegments): void
+    {
+        if (!$this->companiesSegments->contains($companiesSegments)) {
+            return;
+        }
+
+        $this->companiesSegments->removeElement($companiesSegments);
     }
 
     public function hasCompany(Company $company): bool
     {
-        return $this->companies->contains($company);
+        return $this->companiesSegments->exists(static function (int $key, CompaniesSegments $companiesSegments) use ($company): bool {
+            return $companiesSegments->getCompany() === $company;
+        });
     }
 
     public function getLastBuiltDate(): ?\DateTimeInterface
@@ -330,8 +335,8 @@ class CompanySegment extends FormEntity
     {
         parent::__clone();
 
-        $this->id        = null;
-        $this->companies = new ArrayCollection();
+        $this->id                = null;
+        $this->companiesSegments = new ArrayCollection();
         $this->setIsPublished(false);
         $this->setAlias('');
         $this->lastBuiltDate = null;
