@@ -28,7 +28,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         $companyC  = $this->getCompany('company-3');
 
         // check initial state
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
         $rows = $crawler->filter('#companyListTable > tbody > tr');
         self::assertCount(3, $rows);
@@ -92,7 +92,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertStringContainsString('3 companies affected', $response['flashes']);
 
         // check list page
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
         $rows = $crawler->filter('#companyListTable > tbody > tr');
         self::assertCount(3, $rows);
@@ -152,7 +152,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         self::assertIsString($response['flashes']);
         self::assertStringContainsString('3 companies affected', $response['flashes']);
 
-        $crawler = $this->client->request('GET', '/s/company-segments');
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
         $rows = $crawler->filter('#companyListTable > tbody > tr');
         self::assertCount(3, $rows);

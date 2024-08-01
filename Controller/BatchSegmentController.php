@@ -48,8 +48,12 @@ class BatchSegmentController extends AbstractFormController
      */
     public function setAction(Request $request): JsonResponse
     {
-        $params = $request->get('company_batch', []);
-        \assert(is_array($params));
+        $requestParameters = $request->request->all();
+        if (!isset($requestParameters['company_batch']) || !is_array($requestParameters['company_batch'])) {
+            $params = [];
+        } else {
+            $params = $requestParameters['company_batch'];
+        }
 
         $companyIds = '' === $params['ids'] ? [] : json_decode($params['ids'], true, 512, JSON_THROW_ON_ERROR);
 
