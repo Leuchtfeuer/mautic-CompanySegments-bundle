@@ -156,7 +156,7 @@ class CompanySegmentRepository extends CommonRepository
     }
 
     /**
-     * @param array<int|string> $ids
+     * @param array<int>|array{} $ids
      *
      * @return array<CompanySegment>
      */
