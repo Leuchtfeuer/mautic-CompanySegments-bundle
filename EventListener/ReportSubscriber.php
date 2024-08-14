@@ -9,16 +9,17 @@ use Mautic\LeadBundle\Model\CompanyReportData;
 use Mautic\ReportBundle\Event\ReportBuilderEvent;
 use Mautic\ReportBundle\Event\ReportGeneratorEvent;
 use Mautic\ReportBundle\ReportEvents;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ReportSubscriber implements EventSubscriberInterface
 {
-    public const CONTEXT_COMPANY_SEGMENTS         = 'company_segments';
+    public const CONTEXT_COMPANY_SEGMENTS         = CompanySegment::TABLE_NAME;
     public const COMPANY_TABLE                    = 'companies';
     public const COMPANIES_PREFIX                 = 'comp';
     public const COMPANY_SEGMENTS_XREF_PREFIX     = 'csx';
-    public const COMPANY_SEGMENTS_XREF_TABLE      = 'company_segment_xref';
+    public const COMPANY_SEGMENTS_XREF_TABLE      = CompanySegment::RELATION_TABLE_NAME;
 
     public function __construct(
         private CompanyReportData $companyReportData,
@@ -41,8 +42,26 @@ class ReportSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $columns = $this->companyReportData->getCompanyData();
-        unset($columns['companies_lead.is_primary'], $columns['companies_lead.date_added']);
+        $keys = [
+            'comp.id',
+            'comp.companyaddress1',
+            'comp.companyaddress2',
+            'comp.companyemail',
+            'comp.companyphone',
+            'comp.companycity',
+            'comp.companystate',
+            'comp.companyzipcode',
+            'comp.companycountry',
+            'comp.companyname',
+            'comp.companywebsite',
+            'comp.companynumber_of_employees',
+            'comp.companyfax',
+            'comp.companyannual_revenue',
+            'comp.companyindustry',
+            'comp.companydescription',
+        ];
+        $columns         = $this->companyReportData->getCompanyData();
+        $filteredColumns = array_intersect_key($columns, array_flip($keys));
 
         $segmentList = $this->getFilterSegments();
 
@@ -59,22 +78,17 @@ class ReportSubscriber implements EventSubscriberInterface
             ],
         ],
         ];
-        $filters = array_merge($columns, $segmentFilter);
+        $filters = array_merge($filteredColumns, $segmentFilter);
 
         $event->addTable(
             self::CONTEXT_COMPANY_SEGMENTS,
             [
                 'display_name' => 'mautic.company_segments.report.company_segments',
-                'columns'      => $columns,
+                'columns'      => $filteredColumns,
                 'filters'      => $filters,
             ],
             'companies'
         );
-
-        $event->addGraph(self::CONTEXT_COMPANY_SEGMENTS, 'line', 'mautic.lead.graph.line.companies');
-        $event->addGraph(self::CONTEXT_COMPANY_SEGMENTS, 'pie', 'mautic.lead.graph.pie.companies.industry');
-        $event->addGraph(self::CONTEXT_COMPANY_SEGMENTS, 'pie', 'mautic.lead.table.pie.company.country');
-        $event->addGraph(self::CONTEXT_COMPANY_SEGMENTS, 'table', 'mautic.lead.company.table.top.cities');
     }
 
     /**
@@ -82,7 +96,7 @@ class ReportSubscriber implements EventSubscriberInterface
      */
     public function getFilterSegments(): array
     {
-        $segments    = $this->companySegmentRepository->getSegmentObjectsViaListOfIDs([]);
+        $segments    = $this->companySegmentRepository->getSegmentObjectsViaListOfIDs();
         $segmentList = [];
         foreach ($segments as $segment) {
             $segmentList[(string) $segment->getId()] = (string) $segment->getName();
