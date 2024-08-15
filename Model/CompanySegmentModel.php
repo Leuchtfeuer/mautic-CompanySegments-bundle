@@ -15,15 +15,21 @@ use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\CompanyRepository;
 use Mautic\LeadBundle\Entity\OperatorListTrait;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegmentsRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentAddEvent;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentEvents;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentFiltersChoicesEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentPostDelete;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentPostSave;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentPreDelete;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentPreSave;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentPreUnpublish;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRebuildAddEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRebuildRemoveEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRemoveEvent;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\SegmentPreProcessSegmentEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\SegmentPreRebuildSegmentEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Exception\FieldNotFoundException;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Exception\SegmentNotFoundException;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Exception\TableNotFoundException;
@@ -72,6 +78,14 @@ class CompanySegmentModel extends FormModel
     {
         $repository = $this->em->getRepository(Company::class);
         \assert($repository instanceof CompanyRepository);
+
+        return $repository;
+    }
+
+    public function getCompaniesSegmentsRepository(): CompaniesSegmentsRepository
+    {
+        $repository = $this->em->getRepository(CompaniesSegments::class);
+        \assert($repository instanceof CompaniesSegmentsRepository);
 
         return $repository;
     }
@@ -125,7 +139,7 @@ class CompanySegmentModel extends FormModel
         $choices = [];
 
         // Add custom choices
-        if ($this->dispatcher->hasListeners(CompanySegmentEvents::SEGMENT_FILTERS_CHOICES_ON_GENERATE)) {
+        if ($this->dispatcher->hasListeners(CompanySegmentFiltersChoicesEvent::class)) {
             $operatorsForFieldType = $this->getOperatorsForFieldType();
 
             $event = new CompanySegmentFiltersChoicesEvent([], $operatorsForFieldType, $this->translator, $this->requestStack->getCurrentRequest());
@@ -152,11 +166,11 @@ class CompanySegmentModel extends FormModel
         }
 
         $eventClass = match ($action) {
-            'pre_save'      => CompanySegmentEvents::COMPANY_SEGMENT_PRE_SAVE,
-            'post_save'     => CompanySegmentEvents::COMPANY_SEGMENT_POST_SAVE,
-            'pre_delete'    => CompanySegmentEvents::COMPANY_SEGMENT_PRE_DELETE,
-            'post_delete'   => CompanySegmentEvents::COMPANY_SEGMENT_POST_DELETE,
-            'pre_unpublish' => CompanySegmentEvents::COMPANY_SEGMENT_PRE_UNPUBLISH,
+            'pre_save'      => CompanySegmentPreSave::class,
+            'post_save'     => CompanySegmentPostSave::class,
+            'pre_delete'    => CompanySegmentPreDelete::class,
+            'post_delete'   => CompanySegmentPostDelete::class,
+            'pre_unpublish' => CompanySegmentPreUnpublish::class,
             default         => null,
         };
 
@@ -170,7 +184,7 @@ class CompanySegmentModel extends FormModel
                     throw new \RuntimeException('The class '.$eventClass.' does not exist.');
                 }
 
-                if (in_array($eventClass, [CompanySegmentEvents::COMPANY_SEGMENT_PRE_SAVE, CompanySegmentEvents::COMPANY_SEGMENT_POST_SAVE], true)) {
+                if (in_array($eventClass, [CompanySegmentPreSave::class, CompanySegmentPostSave::class], true)) {
                     $event = new $eventClass($entity, $this->em, $isNew);
                 } else {
                     $event = new $eventClass($entity, $this->em);
@@ -280,7 +294,7 @@ class CompanySegmentModel extends FormModel
             [
                 'filter' => [
                     'force'  => [
-                        ['column' => $tableAlias.'.filters', 'expr' => 'LIKE', 'value'=> '%"type": "company_segments"%'],
+                        ['column' => $tableAlias.'.filters', 'expr' => 'LIKE', 'value'=> '%"type": "company_segments"%'], // Whenever Mautic will convert to JSON - make sure this one is uses that feature.
                     ],
                 ],
             ]
@@ -340,15 +354,22 @@ class CompanySegmentModel extends FormModel
 
     /**
      * @param iterable<CompanySegment|int|string> $companySegments
+     *
+     * @see \Mautic\LeadBundle\Model\ListModel::addLead
      */
-    public function addCompany(Company $company, iterable $companySegments): void
+    public function addCompany(Company $company, iterable $companySegments, bool $manuallyAdded = false, ?\DateTimeInterface $dateTimeManipulated = null): void
     {
+        if (null === $dateTimeManipulated) {
+            $dateTimeManipulated = new \DateTime();
+        }
+
         if (is_array($companySegments) && is_numeric(current($companySegments))) {
             foreach ($companySegments as $index => $segmentId) {
                 \assert(is_numeric($segmentId));
                 $companySegments[$index] = (int) $segmentId;
             }
 
+            // If there will be a memory issue: this could be cached as in the lead segment method.
             $companySegments = $this->getEntities([
                 'filter' => [
                     'force' => [
@@ -362,34 +383,63 @@ class CompanySegmentModel extends FormModel
             ]);
         }
 
-        $companyChangeSegment = [];
+        $companyAddSegment = [];
         foreach ($companySegments as $companySegment) {
             if ($companySegment->hasCompany($company)) {
                 continue;
             }
 
-            $companySegment->addCompany($company);
+            $companiesSegments = $this->getCompaniesSegmentsRepository()->findOneBy(
+                [
+                    'company'        => $company,
+                    'companySegment' => $companySegment,
+                ]
+            );
 
-            $companyChangeSegment[$companySegment->getId()] = $companySegment;
+            if (null !== $companiesSegments) {
+                if ($manuallyAdded && $companiesSegments->isManuallyRemoved()) {
+                    $companiesSegments->setManuallyRemoved(false);
+                    $companiesSegments->setManuallyAdded(true);
+                } else {
+                    // Detach from Doctrine, because the segment was manually removed and now is not manually added.
+                    $this->em->detach($companiesSegments);
+
+                    continue;
+                }
+            } else {
+                $companiesSegments = new CompaniesSegments();
+                $companiesSegments->setCompanySegment($companySegment);
+                $companiesSegments->setCompany($company);
+                $companiesSegments->setManuallyAdded($manuallyAdded);
+                $companiesSegments->setDateAdded($dateTimeManipulated);
+            }
+
+            $companySegment->addCompaniesSegment($companiesSegments);
+
+            $companyAddSegment[] = $companiesSegments;
             $this->segmentCountCacheHelper->incrementSegmentCompanyCount($companySegment->getId());
         }
 
-        foreach ($companyChangeSegment as $companySegment) {
-            $event = new CompanySegmentAddEvent($company, $companySegment);
+        foreach ($companyAddSegment as $companiesSegment) {
+            $event = new CompanySegmentAddEvent($company, $companiesSegment->getCompanySegment());
             $this->dispatcher->dispatch($event);
 
             unset($event);
         }
 
-        if ([] !== $companyChangeSegment) {
-            $this->getRepository()->saveEntities($companyChangeSegment);
+        if ([] !== $companyAddSegment) {
+            $this->getCompaniesSegmentsRepository()->saveEntities($companyAddSegment);
         }
+
+        // do not detach company, as it may be used in the subsequent requests.
     }
 
     /**
      * @param iterable<CompanySegment|int> $companySegments
+     *
+     * @see \Mautic\LeadBundle\Model\ListModel::removeLead
      */
-    public function removeCompany(Company $company, iterable $companySegments): void
+    public function removeCompany(Company $company, iterable $companySegments, bool $manuallyRemoved = false): void
     {
         if (is_array($companySegments) && is_numeric(current($companySegments))) {
             foreach ($companySegments as $index => $segmentId) {
@@ -410,28 +460,57 @@ class CompanySegmentModel extends FormModel
             ]);
         }
 
-        $companyChangeSegment = [];
+        $companySaveSegment   = [];
+        $companyDeleteSegment = [];
         foreach ($companySegments as $companySegment) {
             if (!$companySegment->hasCompany($company)) {
                 continue;
             }
 
-            $companySegment->removeCompany($company);
+            $companiesSegments = $this->getCompaniesSegmentsRepository()->findOneBy(
+                [
+                    'company'        => $company,
+                    'companySegment' => $companySegment,
+                ]
+            );
 
-            $companyChangeSegment[$companySegment->getId()] = $companySegment;
+            if (null === $companiesSegments) {
+                // Company is not part of this segment
+                continue;
+            }
+
+            if (($manuallyRemoved && $companiesSegments->isManuallyAdded()) || (!$manuallyRemoved && !$companiesSegments->isManuallyAdded())) {
+                // Company was manually added and now manually removed or was not manually added and now being removed
+                $companyDeleteSegment[$companySegment->getId()] = $companiesSegments;
+                $companySegment->removeCompaniesSegment($companiesSegments);
+            } elseif ($manuallyRemoved && !$companiesSegments->isManuallyAdded()) {
+                $companiesSegments->setManuallyRemoved(true);
+
+                $companySaveSegment[$companySegment->getId()] = $companiesSegments;
+            }
+
             $this->segmentCountCacheHelper->decrementSegmentCompanyCount($companySegment->getId());
         }
 
-        foreach ($companyChangeSegment as $companySegment) {
-            $event = new CompanySegmentRemoveEvent($company, $companySegment);
+        if ([] !== $companySaveSegment) {
+            $this->getRepository()->saveEntities($companySaveSegment);
+        }
+
+        if ([] !== $companyDeleteSegment) {
+            $this->getRepository()->deleteEntities($companyDeleteSegment);
+        }
+
+        $this->getCompaniesSegmentsRepository()->detachEntities($companySaveSegment);
+        $this->getCompaniesSegmentsRepository()->detachEntities($companyDeleteSegment);
+
+        foreach (array_merge($companySaveSegment, $companyDeleteSegment) as $companiesSegment) {
+            $event = new CompanySegmentRemoveEvent($company, $companiesSegment->getCompanySegment());
             $this->dispatcher->dispatch($event);
 
             unset($event);
         }
 
-        if ([] !== $companyChangeSegment) {
-            $this->getRepository()->saveEntities($companyChangeSegment);
-        }
+        // do not detach company, as it may be used in the subsequent requests.
     }
 
     public function rebuildCompanySegment(CompanySegment $companySegment, int $limit = 100, ?int $max = null, ?OutputInterface $output = null): int
@@ -444,7 +523,7 @@ class CompanySegmentModel extends FormModel
         $batchLimiters = ['dateTime' => $dtHelper->toUtcString()]; // @see \MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Service\CompanySegmentService::getNewCompanySegmentCompaniesQueryBuilder
         $list          = ['id' => $segmentId, 'filters' => $companySegment->getFilters()];
 
-        $this->dispatcher->dispatch(new SegmentPreProcessSegmentEvent($list, false));
+        $this->dispatcher->dispatch(new SegmentPreRebuildSegmentEvent($list, false));
 
         try {
             // Get a count of companies to add
@@ -498,16 +577,16 @@ class CompanySegmentModel extends FormModel
                 $this->batchSleep();
 
                 $this->logger->debug(sprintf('Company Segment QB - Fetching new companies for segment [%d] %s', $segmentId, $companySegment->getName()));
-                $newCompanyList = $this->companySegmentService->getNewCompanySegmentCompanies($companySegment, $batchLimiters, $limit);
+                $newCompaniesSegments = $this->companySegmentService->getNewCompanySegmentCompanies($companySegment, $batchLimiters, $limit);
 
-                if ([] === $newCompanyList[$segmentId]) {
+                if ([] === $newCompaniesSegments[$segmentId]) {
                     // Somehow ran out of companies so break out
                     break;
                 }
 
                 $processedCompanies = [];
-                $this->logger->debug(sprintf('Company Segment QB - Adding %d new companies to segment [%d] %s', count($newCompanyList[$segmentId]), $segmentId, $companySegment->getName()));
-                foreach ($newCompanyList[$segmentId] as $companyProperties) {
+                $this->logger->debug(sprintf('Company Segment QB - Adding %d new companies to segment [%d] %s', count($newCompaniesSegments[$segmentId]), $segmentId, $companySegment->getName()));
+                foreach ($newCompaniesSegments[$segmentId] as $companyProperties) {
                     \assert(is_array($companyProperties));
                     $companyId = $companyProperties['id'];
                     \assert(is_numeric($companyId));
@@ -521,7 +600,7 @@ class CompanySegmentModel extends FormModel
                         continue;
                     }
 
-                    $this->addCompany($company, [$companySegment]);
+                    $this->addCompany($company, [$companySegment], false, $dtHelper->getLocalDateTime());
                     $processedCompanies[] = $company;
 
                     ++$companiesProcessed;
@@ -534,7 +613,7 @@ class CompanySegmentModel extends FormModel
                     }
                 }
 
-                $this->logger->info(sprintf('Company Segment QB - Added %d new companies to segment [%d] %s', count($newCompanyList[$segmentId]), $segmentId, $companySegment->getName()));
+                $this->logger->info(sprintf('Company Segment QB - Added %d new companies to segment [%d] %s', count($newCompaniesSegments[$segmentId]), $segmentId, $companySegment->getName()));
 
                 $start += $limit;
 
@@ -545,7 +624,7 @@ class CompanySegmentModel extends FormModel
                     );
                 }
 
-                unset($newCompanyList);
+                unset($newCompaniesSegments);
 
                 // Free some memory
                 gc_collect_cycles();
@@ -597,15 +676,15 @@ class CompanySegmentModel extends FormModel
                 // Keep CPU down for large lists; sleep per $limit batch
                 $this->batchSleep();
 
-                $removeCompanyList = $this->companySegmentService->getOrphanedCompanySegmentCompanies($companySegment, $batchLimiters, $limit);
+                $removeCompanySegment = $this->companySegmentService->getOrphanedCompanySegmentCompanies($companySegment, $batchLimiters, $limit);
 
-                if ([] === $removeCompanyList[$segmentId]) {
+                if ([] === $removeCompanySegment[$segmentId]) {
                     // Somehow ran out of companies so break out
                     break;
                 }
 
                 $processedCompanies = [];
-                foreach ($removeCompanyList[$segmentId] as $companyProperties) {
+                foreach ($removeCompanySegment[$segmentId] as $companyProperties) {
                     \assert(is_array($companyProperties));
                     $companyId = $companyProperties['id'];
                     \assert(is_numeric($companyId));
@@ -638,7 +717,7 @@ class CompanySegmentModel extends FormModel
 
                 $start += $limit;
 
-                unset($removeCompanyList);
+                unset($removeCompanySegment);
 
                 // Free some memory
                 gc_collect_cycles();
@@ -659,7 +738,7 @@ class CompanySegmentModel extends FormModel
             }
         }
 
-        $totalCompaniesCount = $this->getRepository()->getCompanyCount([$segmentId]);
+        $totalCompaniesCount = $this->getCompaniesSegmentsRepository()->getCompanyCount([$segmentId]);
         $this->segmentCountCacheHelper->setSegmentCompanyCount($segmentId, $totalCompaniesCount[$segmentId] ?? 0);
 
         return $companiesProcessed;

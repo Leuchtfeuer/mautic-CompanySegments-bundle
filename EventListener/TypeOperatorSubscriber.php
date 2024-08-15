@@ -14,7 +14,6 @@ use Mautic\LeadBundle\LeadEvents;
 use Mautic\LeadBundle\Provider\FieldChoicesProviderInterface;
 use Mautic\LeadBundle\Provider\TypeOperatorProviderInterface;
 use Mautic\LeadBundle\Segment\OperatorOptions;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentEvents;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentFiltersChoicesEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -42,7 +41,7 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
             LeadEvents::ADJUST_FILTER_FORM_TYPE_FOR_FIELD          => [
                 ['onSegmentFilterFormHandleSelect', 400],
             ],
-            CompanySegmentEvents::SEGMENT_FILTERS_CHOICES_ON_GENERATE => [
+            CompanySegmentFiltersChoicesEvent::class => [
                 ['onGenerateSegmentFiltersAddStaticFields', 0],
                 ['onGenerateSegmentFiltersAddCustomFields', 0],
             ],

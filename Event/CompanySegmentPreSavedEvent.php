@@ -7,7 +7,7 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event;
 use Doctrine\ORM\EntityManagerInterface;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 
-class CompanySegmentPreSavedEvent extends CompanySegmentEvent
+abstract class CompanySegmentPreSavedEvent extends CompanySegmentEvent
 {
     public function __construct(CompanySegment $companySegment, EntityManagerInterface $entityManager, private bool $isNew)
     {

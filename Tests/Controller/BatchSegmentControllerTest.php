@@ -21,7 +21,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
     public function testCompaniesAreAddedToThenRemovedFromSegmentsInBatch(): void
     {
         $this->loadFixtures([LoadCompanyData::class, LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class], false);
-        $segment   = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
+        $segment   = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
         $segmentId = $segment->getId();
         $companyA  = $this->getCompany('company-1');
         $companyB  = $this->getCompany('company-2');
@@ -71,16 +71,24 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         $clientResponse = $this->client->getResponse();
         self::assertEquals(Response::HTTP_OK, $clientResponse->getStatusCode());
 
-        // re-fetch data
-        $segment  = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
-        $companyA = $this->getCompany('company-1');
-        $companyB = $this->getCompany('company-2');
-        $companyC = $this->getCompany('company-3');
+        self::assertCount(3, $segment->getCompaniesSegments());
+        $companiesSegments = $segment->getCompaniesSegments()->get(0);
+        self::assertNotNull($companiesSegments);
+        self::assertTrue($companiesSegments->isManuallyAdded());
+        self::assertFalse($companiesSegments->isManuallyRemoved());
+        self::assertSame($companyA, $companiesSegments->getCompany());
 
-        self::assertSame(
-            [$companyA->getId() => $companyA, $companyB->getId() => $companyB, $companyC->getId() => $companyC],
-            $segment->getCompanies()->toArray()
-        );
+        $companiesSegments = $segment->getCompaniesSegments()->get(1);
+        self::assertNotNull($companiesSegments);
+        self::assertTrue($companiesSegments->isManuallyAdded());
+        self::assertFalse($companiesSegments->isManuallyRemoved());
+        self::assertSame($companyB, $companiesSegments->getCompany());
+
+        $companiesSegments = $segment->getCompaniesSegments()->get(2);
+        self::assertNotNull($companiesSegments);
+        self::assertTrue($companiesSegments->isManuallyAdded());
+        self::assertFalse($companiesSegments->isManuallyRemoved());
+        self::assertSame($companyC, $companiesSegments->getCompany());
 
         $content = $clientResponse->getContent();
         self::assertNotFalse($content);
@@ -135,13 +143,7 @@ class BatchSegmentControllerTest extends MauticMysqlTestCase
         $clientResponse = $this->client->getResponse();
         self::assertEquals(Response::HTTP_OK, $clientResponse->getStatusCode());
 
-        // re-fetch data
-        $segment = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
-
-        self::assertSame(
-            [],
-            $segment->getCompanies()->toArray()
-        );
+        self::assertCount(0, $segment->getCompaniesSegments());
 
         $content = $clientResponse->getContent();
         self::assertNotFalse($content);
