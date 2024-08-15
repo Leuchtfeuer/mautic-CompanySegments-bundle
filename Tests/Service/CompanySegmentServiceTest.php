@@ -109,7 +109,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         // Check initial state. Before command is executed, there are no companies in cache.
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         $companySegmentManualName = $companySegmentManual->getName();
         self::assertNotNull($companySegmentManualName);
@@ -131,7 +131,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         // check 2 companies are added to dependent segment, and manual segment is also updated.
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
         self::assertStringContainsString('2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
@@ -155,7 +155,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         // check only one company are added to dependent segment
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
         self::assertStringContainsString('1 Company', $rows->eq(0)->filter('td')->eq(2)->text());
@@ -201,7 +201,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         // Check initial state.
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         $companySegmentWithFilterName = $companySegmentWithFilter->getName();
         self::assertNotNull($companySegmentWithFilterName);
@@ -236,7 +236,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentWithFilterName, $rows->eq(1)->filter('td')->eq(1)->text());
         self::assertStringContainsString('1 Company', $rows->eq(1)->filter('td')->eq(2)->text());
@@ -262,7 +262,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentWithFilterName, $rows->eq(1)->filter('td')->eq(1)->text());
         self::assertStringContainsString('1 Company', $rows->eq(1)->filter('td')->eq(2)->text());
@@ -284,7 +284,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentWithFilterName, $rows->eq(1)->filter('td')->eq(1)->text());
         self::assertStringContainsString('No Companies', $rows->eq(1)->filter('td')->eq(2)->text());
@@ -337,7 +337,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         // Check initial state.
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         $companySegmentManualName = $companySegmentManual->getName();
         self::assertNotNull($companySegmentManualName);
@@ -372,7 +372,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
         self::assertStringContainsString('2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
@@ -402,7 +402,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
         self::assertStringContainsString('2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
@@ -428,7 +428,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
         self::assertStringContainsString('2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
