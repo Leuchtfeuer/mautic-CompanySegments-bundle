@@ -9,10 +9,10 @@ use Mautic\LeadBundle\Model\CompanyReportData;
 use Mautic\ReportBundle\Event\ReportBuilderEvent;
 use Mautic\ReportBundle\Event\ReportGeneratorEvent;
 use Mautic\ReportBundle\ReportEvents;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 
 class ReportSubscriber implements EventSubscriberInterface
 {
