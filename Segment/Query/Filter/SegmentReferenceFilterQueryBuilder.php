@@ -41,6 +41,8 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
     }
 
     /**
+     * @see \Mautic\LeadBundle\Segment\Query\Filter\SegmentReferenceFilterQueryBuilder::applyQuery
+     *
      * @throws SegmentNotFoundException
      * @throws SegmentQueryException
      * @throws \Doctrine\DBAL\Exception
@@ -80,8 +82,15 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
             \assert(is_string($subSegmentCompaniesTableAlias));
             $segmentQueryBuilder->resetQueryParts(['select'])->select('null');
 
+            // If the segment contains no filters; it means its for manually subscribed only
+            if (count($filters) > 0) {
+                $segmentQueryBuilder = $this->companySegmentQueryBuilder->addManuallyUnsubscribedQuery($segmentQueryBuilder, $companySegment);
+            }
+
+            $segmentQueryBuilder = $this->companySegmentQueryBuilder->addManuallySubscribedQuery($segmentQueryBuilder, $companySegment);
+
             // This query looks a bit too complex, but if the segment(s) has more or less complex filter this is (probably)
-            // the way to go. Hours spent optimizing: 2. Increment if you spent yet more here.
+            // the way to go. Hours spent optimizing: 3. Increment if you spent yet more here.
             $segmentQueryBuilder = $this->companySegmentQueryBuilder->addCompanySegmentQuery($segmentQueryBuilder, $companySegment);
 
             $parameters = $segmentQueryBuilder->getParameters();
@@ -106,6 +115,9 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
             } else {
                 $queryBuilder->addLogic($expression, $filter->getGlue());
             }
+
+            // Preserve memory and detach segments that are not needed anymore.
+            $this->entityManager->detach($companySegment);
         }
 
         if (count($orLogic) > 0) {

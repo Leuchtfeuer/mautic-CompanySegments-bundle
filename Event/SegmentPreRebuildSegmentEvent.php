@@ -6,7 +6,10 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event;
 
 use Mautic\CoreBundle\Event\CommonEvent;
 
-class SegmentPreProcessSegmentEvent extends CommonEvent
+/**
+ * The event is dispatched before segment is rebuilt.
+ */
+class SegmentPreRebuildSegmentEvent extends CommonEvent
 {
     private bool $result = false;
 

@@ -97,7 +97,7 @@ class CompanySegmentType extends AbstractType
 
         $builder->add('isPublished', YesNoButtonGroupType::class);
 
-        $filterModalTransformer = new FieldFilterTransformer($this->translator, ['object' => CompanySegment::RELATED_ENTITY]);
+        $filterModalTransformer = new FieldFilterTransformer($this->translator, ['object' => CompanySegment::LINKED_ENTITY]);
         $builder->add(
             $builder->create(
                 'filters',

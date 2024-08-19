@@ -11,6 +11,7 @@ use Mautic\LeadBundle\Segment\ContactSegmentFilter;
 use Mautic\LeadBundle\Segment\ContactSegmentFilters;
 use Mautic\LeadBundle\Segment\Query\QueryBuilder;
 use Mautic\LeadBundle\Segment\RandomParameterName;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentFilteringEvent;
@@ -148,12 +149,12 @@ class CompanySegmentQueryBuilder
 
         $segmentQueryBuilder = $queryBuilder->createQueryBuilder()
             ->select($tableAlias.'.company_id')
-            ->from(MAUTIC_TABLE_PREFIX.CompanySegment::RELATION_TABLE_NAME, $tableAlias)
+            ->from(MAUTIC_TABLE_PREFIX.CompaniesSegments::TABLE_NAME, $tableAlias)
             ->andWhere($expr->eq($tableAlias.'.segment_id', $segmentIdParameter));
 
         $queryBuilder->setParameter(sprintf('%ssegmentId', $tableAlias), $segmentId);
 
-        $this->addMinMaxLimiters($segmentQueryBuilder, $batchLimiters, CompanySegment::RELATION_TABLE_NAME, 'company_id');
+        $this->addMinMaxLimiters($segmentQueryBuilder, $batchLimiters, CompaniesSegments::TABLE_NAME, 'company_id');
 
         $queryBuilder->andWhere($expr->notIn($companiesTableAlias.'.id', $segmentQueryBuilder->getSQL()));
 
@@ -170,7 +171,7 @@ class CompanySegmentQueryBuilder
 
         $existsQueryBuilder
             ->select('null')
-            ->from(MAUTIC_TABLE_PREFIX.CompanySegment::RELATION_TABLE_NAME, $tableAlias)
+            ->from(MAUTIC_TABLE_PREFIX.CompaniesSegments::TABLE_NAME, $tableAlias)
             ->andWhere($queryBuilder->expr()->eq($tableAlias.'.segment_id', (int) $companySegment->getId()));
 
         $existingQueryWherePart = $existsQueryBuilder->getQueryPart('where');
@@ -192,6 +193,66 @@ class CompanySegmentQueryBuilder
 
         $event = new CompanySegmentQueryBuilderGeneratedEvent($companySegment, $queryBuilder);
         $this->dispatcher->dispatch($event);
+    }
+
+    public function addManuallySubscribedQuery(QueryBuilder $queryBuilder, CompanySegment $companySegment): QueryBuilder
+    {
+        \assert(null !== $companySegment->getId());
+        $companyTableAlias = $queryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'companies');
+
+        if (!is_string($companyTableAlias)) {
+            throw new \LogicException('The table alias for '.MAUTIC_TABLE_PREFIX.'companies must be a string.');
+        }
+
+        $tableAlias = $this->generateRandomParameterName();
+
+        $existsQueryBuilder = $queryBuilder->createQueryBuilder();
+
+        $existsQueryBuilder
+            ->select('null')
+            ->from(MAUTIC_TABLE_PREFIX.CompaniesSegments::TABLE_NAME, $tableAlias)
+            ->andWhere($queryBuilder->expr()->eq($tableAlias.'.segment_id', $companySegment->getId()))
+            ->andWhere(
+                $queryBuilder->expr()->or(
+                    $queryBuilder->expr()->eq($tableAlias.'.manually_added', 1),
+                    $queryBuilder->expr()->eq($tableAlias.'.manually_removed', $queryBuilder->expr()->literal(0))
+                )
+            );
+
+        $existingQueryWherePart = $existsQueryBuilder->getQueryPart('where');
+        $existsQueryBuilder->where(sprintf('%s.id = %s.company_id', $companyTableAlias, $tableAlias));
+        $existsQueryBuilder->andWhere($existingQueryWherePart);
+
+        $queryBuilder->orWhere(
+            $queryBuilder->expr()->exists($existsQueryBuilder->getSQL())
+        );
+
+        return $queryBuilder;
+    }
+
+    /**
+     * @throws QueryException
+     */
+    public function addManuallyUnsubscribedQuery(QueryBuilder $queryBuilder, CompanySegment $companySegment): QueryBuilder
+    {
+        \assert(null !== $companySegment->getId());
+        $companyTableAlias = $queryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'companies');
+
+        if (!is_string($companyTableAlias)) {
+            throw new \LogicException('The table alias for '.MAUTIC_TABLE_PREFIX.'companies must be a string.');
+        }
+
+        $tableAlias        = $this->generateRandomParameterName();
+        $queryBuilder->leftJoin(
+            $companyTableAlias,
+            MAUTIC_TABLE_PREFIX.CompaniesSegments::TABLE_NAME,
+            $tableAlias,
+            $companyTableAlias.'.id = '.$tableAlias.'.company_id and '.$tableAlias.'.segment_id = '.$companySegment->getId()
+        );
+        $queryBuilder->addJoinCondition($tableAlias, $queryBuilder->expr()->eq($tableAlias.'.manually_removed', 1));
+        $queryBuilder->andWhere($queryBuilder->expr()->isNull($tableAlias.'.company_id'));
+
+        return $queryBuilder;
     }
 
     /**

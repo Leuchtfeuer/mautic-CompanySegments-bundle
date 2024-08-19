@@ -11,6 +11,8 @@ use Mautic\UserBundle\DataFixtures\ORM\LoadRoleData;
 use Mautic\UserBundle\DataFixtures\ORM\LoadUserData;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Command\UpdateCompanySegmentsCommand;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\DataFixtures\ORM\LoadCompanySegmentData;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegmentsRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Tests\MauticMysqlTestCase;
@@ -47,31 +49,48 @@ class AjaxControllerTest extends MauticMysqlTestCase
     {
         $this->loadFixtures([LoadCompanyData::class, LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class]);
 
-        $companySegmentManual = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_1);
+        $companySegmentManual = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_NO_FILTERS);
+
+        $companiesSegmentsRepository = static::getContainer()->get(CompaniesSegmentsRepository::class);
+        \assert($companiesSegmentsRepository instanceof CompaniesSegmentsRepository);
+
         $company              = $this->getCompany('company-1');
-        $companySegmentManual->addCompany($company);
-        $company2 = $this->getCompany('company-2');
-        $companySegmentManual->addCompany($company2);
+        $companiesSegments    = new CompaniesSegments();
+        $companiesSegments->setCompanySegment($companySegmentManual);
+        $companiesSegments->setCompany($company);
+        $companiesSegments->setManuallyAdded(true);
+        $companiesSegments->setDateAdded(new \DateTime());
+        $companiesSegmentsRepository->saveEntity($companiesSegments);
+        $companySegmentManual->addCompaniesSegment($companiesSegments);
+
+        $company2          = $this->getCompany('company-2');
+        $companiesSegments = new CompaniesSegments();
+        $companiesSegments->setCompanySegment($companySegmentManual);
+        $companiesSegments->setCompany($company2);
+        $companiesSegments->setManuallyAdded(true);
+        $companiesSegments->setDateAdded(new \DateTime());
+        $companiesSegmentsRepository->saveEntity($companiesSegments);
+        $companySegmentManual->addCompaniesSegment($companiesSegments);
 
         $companySegmentModel = static::getContainer()->get(CompanySegmentModel::class);
         \assert($companySegmentModel instanceof CompanySegmentModel);
         $companySegmentModel->saveEntity($companySegmentManual);
-        self::assertCount(2, $companySegmentManual->getCompanies());
+        self::assertCount(2, $companySegmentManual->getCompaniesSegments());
 
-        $companySegmentFiltered = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_2);
+        $companySegmentFiltered = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
         $company->addUpdatedField('companyannual_revenue', '123456');
         $companyModel = static::getContainer()->get(CompanyModel::class);
         \assert($companyModel instanceof CompanyModel);
         $companyModel->saveEntity($company);
-        self::assertCount(0, $companySegmentFiltered->getCompanies(), 'Check that there are no aut-saving to the cache.');
+        self::assertCount(0, $companySegmentFiltered->getCompaniesSegments(), 'Check that there are no aut-saving to the cache.');
 
-        $companySegmentDependent = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_3);
-        self::assertCount(0, $companySegmentDependent->getCompanies());
+        $companySegmentDependent = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_DEPENDENT);
+        self::assertCount(0, $companySegmentDependent->getCompaniesSegments());
 
         // Though the DB contains "proper" counts of companies in segments, the command need to be executed to fill in the cache.
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         $companySegmentManualName = $companySegmentManual->getName();
         self::assertNotNull($companySegmentManualName);
@@ -100,7 +119,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
         self::assertResponseIsSuccessful();
-        $rows = $crawler->filter('#companyListTable > tbody > tr');
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
         self::assertCount(3, $rows);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
         self::assertStringContainsString('2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
