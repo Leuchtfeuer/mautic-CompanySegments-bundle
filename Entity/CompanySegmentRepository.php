@@ -127,14 +127,14 @@ class CompanySegmentRepository extends CommonRepository
     public function getSegmentObjectsViaListOfIDs(array $ids): array
     {
         $q = $this->getEntityManager()->createQueryBuilder()
-            ->from(CompanySegment::class, 'cs', 'cs.id');
+            ->from(CompanySegment::class, CompanySegment::DEFAULT_ALIAS, CompanySegment::DEFAULT_ALIAS.'.id');
 
         $q->select('cs')
-            ->andWhere($q->expr()->eq('cs.isPublished', ':true'))
+            ->andWhere($q->expr()->eq(CompanySegment::DEFAULT_ALIAS.'.isPublished', ':true'))
             ->setParameter('true', true, 'boolean');
 
         if (!empty($ids)) {
-            $q->andWhere($q->expr()->in('cs.id', $ids));
+            $q->andWhere($q->expr()->in(CompanySegment::DEFAULT_ALIAS.'.id', $ids));
         }
 
         return $q->getQuery()->getResult();
