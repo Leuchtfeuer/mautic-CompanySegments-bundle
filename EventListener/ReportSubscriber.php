@@ -245,7 +245,7 @@ class ReportSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @param array<string, string> $filter
+     * @param array<string, string|null> $filter
      */
     public function getCompanySegmentCondition(array $filter): ?string
     {
