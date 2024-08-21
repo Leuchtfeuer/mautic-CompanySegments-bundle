@@ -93,7 +93,7 @@ class ReportSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @return array<string, string>
+     * @return array<int|string, string>
      */
     public function getFilterSegments(): array
     {
@@ -123,20 +123,18 @@ class ReportSubscriber implements EventSubscriberInterface
 
         $expr     = $qb->expr();
 
-        if (count($filters)) {
+        if (boolval(count($filters))) {
             foreach ($filters as $i => $filter) {
                 $exprFunction = $filter['expr'] ?? $filter['condition'];
                 $paramName    = sprintf('i%dc%s', $i, InputHelper::alphanum($filter['column']));
 
                 if (array_key_exists('glue', $filter) && 'or' === $filter['glue']) {
-                    if ($andGroup) {
-                        $orGroups[] = CompositeExpression::and(...$andGroup);
-                        $andGroup   = [];
-                    }
+                    $orGroups[] = CompositeExpression::and(...$andGroup);
+                    $andGroup   = [];
                 }
 
                 $companySegmentCondition = $this->getCompanySegmentCondition($filter);
-                if ($companySegmentCondition) {
+                if (!is_null($companySegmentCondition)) {
                     $andGroup[] = $companySegmentCondition;
                     continue;
                 }
@@ -163,6 +161,7 @@ class ReportSubscriber implements EventSubscriberInterface
                         $columnValue = ":$paramName";
                         $expression  = $qb->expr()->or(
                             $qb->expr()->isNull($filter['column']),
+                            /** @phpstan-ignore-next-line */
                             $qb->expr()->$exprFunction($filter['column'], $columnValue)
                         );
                         $qb->setParameter($paramName, $filter['value']);
@@ -228,16 +227,17 @@ class ReportSubscriber implements EventSubscriberInterface
                             default:
                                 $qb->setParameter($paramName, $filter['value']);
                         }
+                        /** @phpstan-ignore-next-line */
                         $andGroup[] = $expr->{$exprFunction}($filter['column'], $columnValue);
                 }
             }
         }
 
-        if ($orGroups) {
+        if (boolval($orGroups)) {
             // Add the remaining $andGroup to the rest of the $orGroups if exists so we don't miss it.
             $orGroups[] = CompositeExpression::and(...$andGroup);
             $qb->andWhere(CompositeExpression::or(...$orGroups));
-        } elseif ($andGroup) {
+        } elseif (boolval($andGroup)) {
             $qb->andWhere(CompositeExpression::and(...$andGroup));
         }
 
@@ -245,7 +245,7 @@ class ReportSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @param array<string, mixed> $filter
+     * @param array<string, string> $filter
      */
     public function getCompanySegmentCondition(array $filter): ?string
     {
@@ -257,13 +257,13 @@ class ReportSubscriber implements EventSubscriberInterface
         $segmentSubQuery->select('DISTINCT '.self::COMPANY_SEGMENTS_XREF_PREFIX.'.company_id')
             ->from(MAUTIC_TABLE_PREFIX.self::COMPANY_SEGMENTS_XREF_TABLE, self::COMPANY_SEGMENTS_XREF_PREFIX);
 
-        if (in_array($filter['condition'], ['in', 'notIn']) && !empty($filter['value'])) {
+        if (in_array($filter['condition'], ['in', 'notIn'], true) && !is_null($filter['value'])) {
             $segmentSubQuery->andWhere($segmentSubQuery->expr()->in(self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id', $filter['value']));
         }
 
-        if (in_array($filter['condition'], ['in', 'notEmpty'])) {
+        if (in_array($filter['condition'], ['in', 'notEmpty'], true)) {
             return $segmentSubQuery->expr()->in(self::COMPANIES_PREFIX.'.id', $segmentSubQuery->getSQL());
-        } elseif (in_array($filter['condition'], ['notIn', 'empty'])) {
+        } elseif (in_array($filter['condition'], ['notIn', 'empty'], true)) {
             return $segmentSubQuery->expr()->notIn(self::COMPANIES_PREFIX.'.id', $segmentSubQuery->getSQL());
         }
 
@@ -271,8 +271,8 @@ class ReportSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @param mixed[] $filter
-     * @param mixed[] $filterDefinitions
+     * @param array<string, mixed>                 $filter
+     * @param array<string, array<string, string>> $filterDefinitions
      */
     private function doesColumnSupportEmptyValue(array $filter, array $filterDefinitions): bool
     {

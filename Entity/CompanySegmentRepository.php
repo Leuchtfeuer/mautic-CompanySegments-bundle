@@ -120,9 +120,9 @@ class CompanySegmentRepository extends CommonRepository
     /**
      * This function is required for both generating reports by company segment and for the LeuchtfeuerCompanyListWidgetBundle.
      *
-     * @param array<int>|array{} $ids list of IDs for company segments
+     * @param array<int>|array{} $ids
      *
-     * @return array<CompanySegment> array of CompanySegment objects
+     * @return array<CompanySegment>
      */
     public function getSegmentObjectsViaListOfIDs(array $ids = []): array
     {
@@ -133,10 +133,11 @@ class CompanySegmentRepository extends CommonRepository
             ->andWhere($q->expr()->eq('cs.isPublished', ':true'))
             ->setParameter('true', true, 'boolean');
 
-        if (!empty($ids)) {
+        if (count($ids) > 0) {
             $q->andWhere($q->expr()->in('cs.id', $ids));
         }
 
+        /** @var array<CompanySegment> */
         return $q->getQuery()->getResult();
     }
 }
