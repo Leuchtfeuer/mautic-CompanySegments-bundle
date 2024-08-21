@@ -15,6 +15,7 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegmentsRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Helper\SegmentCountCacheHelper;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentActionModel;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Service\CompanySegmentService;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Tests\MauticMysqlTestCase;
@@ -22,8 +23,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 class CompanySegmentServiceTest extends MauticMysqlTestCase
 {
-    protected $useCleanupRollback = false;
-
     /**
      * When I create a Company Segment “test2” with filter “Annual Revenue greater than 100000" and run the console command, nothing changes.
      * When I now change the Annual Revenue of one company to 123456, and re-run the console command, that company gets added to the segment
@@ -515,7 +514,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
 
     /**
      * When I create a Company Segment “test2” with filter “Annual Revenue greater than 100000",
-     * add manually "Company 2", which *does not* match filters on segment, and then run command - the segment contains only contains "Company 2"
+     * add manually "Company 2", which *does not* match filters on segment, and then run command - the segment contains only "Company 2"
      * When I now change the Annual Revenue of one "Company 1" to 123456, and re-run the console command, that company gets added to the segment,
      * and "Company 2" will be still on the list.
      * Same for filters on score.
@@ -584,6 +583,12 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         $companySegmentService = self::getContainer()->get(CompanySegmentService::class);
         \assert($companySegmentService instanceof CompanySegmentService);
         self::assertSame('2', $companySegmentService->getTotalCompanySegmentsCompaniesCount($companySegment)[$companySegment->getId()]['count']);
+
+        // Check that company that was added is present in the list with the company-segment filter in companies view
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/companies?search=company-segment:'.$companySegment->getAlias());
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(2, $rows);
     }
 
     /**
@@ -650,6 +655,184 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         $companySegmentService = self::getContainer()->get(CompanySegmentService::class);
         \assert($companySegmentService instanceof CompanySegmentService);
         self::assertSame('1', $companySegmentService->getTotalCompanySegmentsCompaniesCount($companySegment)[$companySegment->getId()]['count']);
+
+        // Check that company that was removed is not in the list with the company-segment filter in companies view
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/companies?search=company-segment:'.$companySegment->getAlias());
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(1, $rows);
+    }
+
+    /**
+     * When I create a Company Segment “test2” with filter “Annual Revenue greater than 100000",
+     * make sure only "Company 2" conforms the filter, then run the command.
+     * The company is added to the segment, which is also visible on the companies filtered list.
+     * Then i manually add the "Company 1" to the list, rerun the command and check that segment contains both
+     * companies, and the companies filtered list also contains both.
+     * Same for filters on score.
+     *
+     * @dataProvider provideFilterFields
+     */
+    public function testManuallyAddedIsVisibleInCompaniesView(string $filterField): void
+    {
+        $this->loadFixtures([LoadCompanyData::class, LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class]);
+
+        $companySegmentModel = static::getContainer()->get(CompanySegmentModel::class);
+        \assert($companySegmentModel instanceof CompanySegmentModel);
+
+        $companySegment  = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
+        $existingFilters = $companySegment->getFilters();
+        self::assertCount(1, $existingFilters, 'Self-check.');
+        $existingFilters[0]['field'] = $filterField;
+        $companySegment->setFilters($existingFilters);
+        $companySegmentModel->saveEntity($companySegment);
+
+        $company1 = $this->getCompany('company-1');
+        $company1->addUpdatedField($filterField, '1');
+        $companyModel = static::getContainer()->get(CompanyModel::class);
+        \assert($companyModel instanceof CompanyModel);
+        $companyModel->saveEntity($company1);
+
+        $company2 = $this->getCompany('company-2');
+        $company2->addUpdatedField($filterField, '123456');
+        $companyModel = static::getContainer()->get(CompanyModel::class);
+        \assert($companyModel instanceof CompanyModel);
+        $companyModel->saveEntity($company2);
+
+        $updateCompanySegmentCommandName = UpdateCompanySegmentsCommand::getDefaultName();
+        self::assertNotNull($updateCompanySegmentCommandName);
+        $commandResult = $this->testSymfonyCommand($updateCompanySegmentCommandName, [
+            '--env' => 'test',
+        ]);
+        self::assertSame(0, $commandResult->getStatusCode());
+        self::assertCount(1, $companySegment->getCompaniesSegments());
+
+        $this->em->clear();
+        $companySegment = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
+        self::assertNotNull($companySegment->getId());
+        $company2 = $this->getCompany('company-2');
+
+        self::assertSame(0, $commandResult->getStatusCode());
+        self::assertCount(1, $companySegment->getCompaniesSegments());
+        $companiesSegments = $companySegment->getCompaniesSegments()->get(0);
+        self::assertNotNull($companiesSegments);
+        self::assertFalse($companiesSegments->isManuallyAdded());
+        self::assertFalse($companiesSegments->isManuallyRemoved());
+        self::assertSame($company2, $companiesSegments->getCompany());
+
+        $segmentCountHelper = self::getContainer()->get(SegmentCountCacheHelper::class);
+        \assert($segmentCountHelper instanceof SegmentCountCacheHelper);
+        self::assertSame(1, $segmentCountHelper->getSegmentCompanyCount($companySegment->getId()));
+
+        $companySegmentService = self::getContainer()->get(CompanySegmentService::class);
+        \assert($companySegmentService instanceof CompanySegmentService);
+        self::assertSame('1', $companySegmentService->getTotalCompanySegmentsCompaniesCount($companySegment)[$companySegment->getId()]['count']);
+
+        // Check that only one company appear in filtered companies list
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/companies?search=company-segment:'.$companySegment->getAlias());
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(1, $rows);
+
+        // now manually add the company 1.
+        $companySegmentActionModel = self::getContainer()->get(CompanySegmentActionModel::class);
+        \assert($companySegmentActionModel instanceof CompanySegmentActionModel);
+        $companySegmentActionModel->addCompanies([$company1->getId()], [$companySegment->getId()], true);
+
+        // Check that both company appear in filtered companies list
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/companies?search=company-segment:'.$companySegment->getAlias());
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(2, $rows);
+    }
+
+    /**
+     * When I create a Company Segment “test2” with filter “Annual Revenue greater than 100000",
+     * make sure "Company 1" and "Company 2" conforms the filter, then run the command.
+     * Both companies are added to the segment, which is also visible on the companies filtered list.
+     * Then i manually remove the "Company 1" from the list, rerun the command and check that segment contains only one
+     * company, and the companies filtered list also contains only one.
+     * Same for filters on score.
+     *
+     * @dataProvider provideFilterFields
+     */
+    public function testManuallyRemovedNotVisibleInCompaniesView(string $filterField): void
+    {
+        $this->loadFixtures([LoadCompanyData::class, LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class]);
+
+        $companySegmentModel = static::getContainer()->get(CompanySegmentModel::class);
+        \assert($companySegmentModel instanceof CompanySegmentModel);
+
+        $companySegment  = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
+        $existingFilters = $companySegment->getFilters();
+        self::assertCount(1, $existingFilters, 'Self-check.');
+        $existingFilters[0]['field'] = $filterField;
+        $companySegment->setFilters($existingFilters);
+        $companySegmentModel->saveEntity($companySegment);
+
+        $company1 = $this->getCompany('company-1');
+        $company1->addUpdatedField($filterField, '123456');
+        $companyModel = static::getContainer()->get(CompanyModel::class);
+        \assert($companyModel instanceof CompanyModel);
+        $companyModel->saveEntity($company1);
+
+        $company2 = $this->getCompany('company-2');
+        $company2->addUpdatedField($filterField, '123456');
+        $companyModel = static::getContainer()->get(CompanyModel::class);
+        \assert($companyModel instanceof CompanyModel);
+        $companyModel->saveEntity($company2);
+
+        $updateCompanySegmentCommandName = UpdateCompanySegmentsCommand::getDefaultName();
+        self::assertNotNull($updateCompanySegmentCommandName);
+        $commandResult = $this->testSymfonyCommand($updateCompanySegmentCommandName, [
+            '--env' => 'test',
+        ]);
+        self::assertSame(0, $commandResult->getStatusCode());
+        self::assertCount(2, $companySegment->getCompaniesSegments());
+
+        $this->em->clear();
+        $companySegment = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
+        self::assertNotNull($companySegment->getId());
+        $company1 = $this->getCompany('company-1');
+        $company2 = $this->getCompany('company-2');
+
+        self::assertSame(0, $commandResult->getStatusCode());
+        self::assertCount(2, $companySegment->getCompaniesSegments());
+        $companiesSegments = $companySegment->getCompaniesSegments()->get(0);
+        self::assertNotNull($companiesSegments);
+        self::assertFalse($companiesSegments->isManuallyAdded());
+        self::assertFalse($companiesSegments->isManuallyRemoved());
+        self::assertSame($company1, $companiesSegments->getCompany());
+        $companiesSegments = $companySegment->getCompaniesSegments()->get(1);
+        self::assertNotNull($companiesSegments);
+        self::assertFalse($companiesSegments->isManuallyAdded());
+        self::assertFalse($companiesSegments->isManuallyRemoved());
+        self::assertSame($company2, $companiesSegments->getCompany());
+
+        $segmentCountHelper = self::getContainer()->get(SegmentCountCacheHelper::class);
+        \assert($segmentCountHelper instanceof SegmentCountCacheHelper);
+        self::assertSame(2, $segmentCountHelper->getSegmentCompanyCount($companySegment->getId()));
+
+        $companySegmentService = self::getContainer()->get(CompanySegmentService::class);
+        \assert($companySegmentService instanceof CompanySegmentService);
+        self::assertSame('2', $companySegmentService->getTotalCompanySegmentsCompaniesCount($companySegment)[$companySegment->getId()]['count']);
+
+        // Check that both companies appear in filtered companies list
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/companies?search=company-segment:'.$companySegment->getAlias());
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(2, $rows);
+
+        // now manually remove the company 1.
+        $companySegmentActionModel = self::getContainer()->get(CompanySegmentActionModel::class);
+        \assert($companySegmentActionModel instanceof CompanySegmentActionModel);
+        $companySegmentActionModel->removeCompanies([$company1->getId()], [$companySegment->getId()], true);
+
+        // Check that one company appear in filtered companies list
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/companies?search=company-segment:'.$companySegment->getAlias());
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companyTable > tbody > tr');
+        self::assertCount(1, $rows);
     }
 
     private function addCompanyToSegment(Company $company, CompanySegment $companySegment, bool $manuallyAdded = true, bool $manuallyRemoved = false): void

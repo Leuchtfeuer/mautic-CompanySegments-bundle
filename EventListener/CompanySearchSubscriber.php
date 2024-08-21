@@ -53,9 +53,14 @@ class CompanySearchSubscriber implements EventSubscriberInterface
                         $this->companyRepository->getTableAlias().'.id',
                         CompaniesSegments::RELATIONS_NAME.'.company_id'
                     ),
-                    $sq->expr()->in(CompaniesSegments::RELATIONS_NAME.'.segment_id', ':'.$uniqueParameterAlias)
+                    $sq->expr()->in(CompaniesSegments::RELATIONS_NAME.'.segment_id', ':'.$uniqueParameterAlias),
+                    $sq->expr()->neq(CompaniesSegments::RELATIONS_NAME.'.manually_removed', ':true')
                 )
             );
+
+        $parameters         = $event->getParameters();
+        $parameters['true'] = true;
+        $event->setParameters($parameters);
 
         // do not escape the subquery.
         $event->setStrict(true);
