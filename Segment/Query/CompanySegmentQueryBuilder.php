@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Segment\Query;
 
 use Doctrine\DBAL\Connections\PrimaryReadReplicaConnection;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\EntityManager;
 use Mautic\LeadBundle\Entity\CompanyRepository;
 use Mautic\LeadBundle\Segment\ContactSegmentFilter;
@@ -214,8 +215,8 @@ class CompanySegmentQueryBuilder
             ->andWhere($queryBuilder->expr()->eq($tableAlias.'.segment_id', $companySegment->getId()))
             ->andWhere(
                 $queryBuilder->expr()->or(
-                    $queryBuilder->expr()->eq($tableAlias.'.manually_added', 1),
-                    $queryBuilder->expr()->eq($tableAlias.'.manually_removed', $queryBuilder->expr()->literal(0))
+                    $queryBuilder->expr()->eq($tableAlias.'.manually_added', ':true'),
+                    $queryBuilder->expr()->eq($tableAlias.'.manually_removed', ':false')
                 )
             );
 
@@ -225,7 +226,9 @@ class CompanySegmentQueryBuilder
 
         $queryBuilder->orWhere(
             $queryBuilder->expr()->exists($existsQueryBuilder->getSQL())
-        );
+        )
+            ->setParameter('true', true, ParameterType::BOOLEAN)
+            ->setParameter('false', false, ParameterType::BOOLEAN);
 
         return $queryBuilder;
     }
@@ -242,15 +245,16 @@ class CompanySegmentQueryBuilder
             throw new \LogicException('The table alias for '.MAUTIC_TABLE_PREFIX.'companies must be a string.');
         }
 
-        $tableAlias        = $this->generateRandomParameterName();
+        $tableAlias = $this->generateRandomParameterName();
         $queryBuilder->leftJoin(
             $companyTableAlias,
             MAUTIC_TABLE_PREFIX.CompaniesSegments::TABLE_NAME,
             $tableAlias,
-            $companyTableAlias.'.id = '.$tableAlias.'.company_id and '.$tableAlias.'.segment_id = '.$companySegment->getId()
-        );
-        $queryBuilder->addJoinCondition($tableAlias, $queryBuilder->expr()->eq($tableAlias.'.manually_removed', 1));
-        $queryBuilder->andWhere($queryBuilder->expr()->isNull($tableAlias.'.company_id'));
+            $companyTableAlias.'.id = '.$tableAlias.'.company_id and '.$tableAlias.'.segment_id = :manually_unsubscribed_segment_id'
+        )->setParameter('manually_unsubscribed_segment_id', $companySegment->getId())
+            ->addJoinCondition($tableAlias, $queryBuilder->expr()->eq($tableAlias.'.manually_removed', ':true'))
+            ->andWhere($queryBuilder->expr()->isNull($tableAlias.'.company_id'))
+            ->setParameter('true', true, ParameterType::BOOLEAN);
 
         return $queryBuilder;
     }

@@ -27,8 +27,8 @@ if (false === $mauticPhpStanConfig) {
 }
 
 $phpStanPatch = \str_replace(
-    ['ignoreErrors:', 'excludePaths:'],
-    ['ignoreErrors:'.PHP_EOL.$phpStanPatch, 'excludePaths:'.PHP_EOL."\t\t- plugins/LeuchtfeuerCompanySegmentsBundle/rector.php"],
+    'ignoreErrors:',
+    'ignoreErrors:'.PHP_EOL.$phpStanPatch,
     $mauticPhpStanConfig
 );
 

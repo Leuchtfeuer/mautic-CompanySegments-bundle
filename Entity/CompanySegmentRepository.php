@@ -6,6 +6,7 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity;
 
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\UserBundle\Entity\User;
+use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
  * @extends CommonRepository<CompanySegment>
@@ -118,24 +119,41 @@ class CompanySegmentRepository extends CommonRepository
     }
 
     /**
+     * This function is required for both generating reports by company segment and for the LeuchtfeuerCompanyListWidgetBundle.
+     *
      * @param array<int|string> $ids
      *
-     * @return array<CompanySegment>
+     * @return array<int, CompanySegment>
      */
-    // This function is required for both generating reports by company segment and for the LeuchtfeuerCompanyListWidgetBundle
     public function getSegmentObjectsViaListOfIDs(array $ids): array
     {
         $q = $this->getEntityManager()->createQueryBuilder()
-            ->from(CompanySegment::class, 'cs', 'cs.id');
+            ->from(CompanySegment::class, CompanySegment::DEFAULT_ALIAS, CompanySegment::DEFAULT_ALIAS.'.id');
 
         $q->select('cs')
-            ->andWhere($q->expr()->eq('cs.isPublished', ':true'))
+            ->andWhere($q->expr()->eq(CompanySegment::DEFAULT_ALIAS.'.isPublished', ':true'))
             ->setParameter('true', true, 'boolean');
 
-        if (!empty($ids)) {
-            $q->andWhere($q->expr()->in('cs.id', $ids));
+        if ([] !== $ids) {
+            $q->andWhere($q->expr()->in(CompanySegment::DEFAULT_ALIAS.'.id', $ids));
         }
 
-        return $q->getQuery()->getResult();
+        $return = $q->getQuery()->getResult();
+
+        if (!is_array($return)) {
+            throw new UnexpectedTypeException($return, 'array');
+        }
+
+        foreach ($return as $index => $item) {
+            if (!is_int($index)) {
+                throw new UnexpectedTypeException($index, 'int');
+            }
+
+            if (!$item instanceof CompanySegment) {
+                throw new UnexpectedTypeException($index, CompanySegment::class);
+            }
+        }
+
+        return $return;
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity;
 
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
@@ -37,7 +38,7 @@ class CompaniesSegmentsRepository extends CommonRepository
 
         $q->where($expression);
         $q->andWhere(CompaniesSegments::RELATIONS_NAME.'.manually_removed = :false')
-            ->setParameter('false', false, 'boolean');
+            ->setParameter('false', false, ParameterType::BOOLEAN);
 
         $result = $q->executeQuery()->fetchAllAssociative();
 
