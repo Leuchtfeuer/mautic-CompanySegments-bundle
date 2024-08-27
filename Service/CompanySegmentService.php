@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Service;
 
+use Doctrine\DBAL\ParameterType;
 use Mautic\LeadBundle\Segment\ContactSegmentFilterFactory;
 use Mautic\LeadBundle\Segment\Exception\SegmentQueryException;
 use Mautic\LeadBundle\Segment\Query\QueryBuilder;
@@ -275,9 +276,10 @@ class CompanySegmentService
         $qbO->from(MAUTIC_TABLE_PREFIX.CompaniesSegments::TABLE_NAME, 'orp');
         $qbO->setParameters($queryBuilder->getParameters(), $queryBuilder->getParameterTypes());
         $qbO->andWhere($expr->eq('orp.segment_id', ':orpsegid'));
-        $qbO->andWhere($expr->eq('orp.manually_added', $expr->literal(0)));
+        $qbO->andWhere($expr->eq('orp.manually_added', ':false'));
         $qbO->andWhere($expr->notIn('orp.company_id', $queryBuilder->getSQL()));
         $qbO->setParameter('orpsegid', $companySegment->getId());
+        $qbO->setParameter('false', false, ParameterType::BOOLEAN);
         $this->addMinMaxLimiters($qbO, $batchLimiters, CompaniesSegments::TABLE_NAME, 'company_id');
 
         if (null !== $limit && $limit > 0) {
