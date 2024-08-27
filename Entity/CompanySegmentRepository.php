@@ -134,7 +134,6 @@ class CompanySegmentRepository extends CommonRepository
             ->andWhere($q->expr()->eq(CompanySegment::DEFAULT_ALIAS.'.isPublished', ':true'))
             ->setParameter('true', true, 'boolean');
 
-
         if ([] !== $ids) {
             $q->andWhere($q->expr()->in(CompanySegment::DEFAULT_ALIAS.'.id', $ids));
         }
@@ -154,6 +153,7 @@ class CompanySegmentRepository extends CommonRepository
                 throw new UnexpectedTypeException($index, CompanySegment::class);
             }
         }
+
         return $return;
     }
 }
