@@ -69,4 +69,19 @@ class CompaniesSegmentsRepository extends CommonRepository
 
         return $qb;
     }
+
+    /**
+     * @param int[] $segmentIds
+     *
+     * @return CompaniesSegments[]
+     */
+    public function getCompaniesSegmentsBySegmentIds(array $segmentIds): array
+    {
+        $result = $this->findBy([
+            'companySegment'  => $segmentIds,
+            'manuallyRemoved' => 0,
+        ]);
+
+        return array_values(array_unique($result, SORT_REGULAR));
+    }
 }
