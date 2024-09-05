@@ -66,20 +66,19 @@ class ReportSubscriber implements EventSubscriberInterface
 
         $segmentList = $this->getFilterSegments();
 
-        $segmentFilter = [self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id' => [
-            'alias'     => 'companysegments',
-            'label'     => 'mautic.company_segments.report.company_segments',
-            'type'      => 'select',
-            'list'      => $segmentList,
+        $filters = $filteredColumns;
+        $filters[self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id'] = [
+            'alias' => 'companysegments',
+            'label' => 'mautic.company_segments.report.company_segments',
+            'type'  => 'select',
+            'list'  => $segmentList,
             'operators' => [
                 'in'       => 'mautic.core.operator.in',
                 'notIn'    => 'mautic.core.operator.notin',
                 'empty'    => 'mautic.core.operator.isempty',
                 'notEmpty' => 'mautic.core.operator.isnotempty',
             ],
-        ],
         ];
-        $filters = array_merge($filteredColumns, $segmentFilter);
 
         $event->addTable(
             self::CONTEXT_COMPANY_SEGMENTS,
@@ -93,7 +92,7 @@ class ReportSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @return array<int|string, string>
+     * @return array<string, string>
      */
     public function getFilterSegments(): array
     {
@@ -123,7 +122,7 @@ class ReportSubscriber implements EventSubscriberInterface
 
         $expr     = $qb->expr();
 
-        if (boolval(count($filters))) {
+        if (count($filters) > 0) {
             foreach ($filters as $i => $filter) {
                 $exprFunction = $filter['expr'] ?? $filter['condition'];
                 $paramName    = sprintf('i%dc%s', $i, InputHelper::alphanum($filter['column']));
