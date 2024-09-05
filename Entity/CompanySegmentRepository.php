@@ -121,7 +121,7 @@ class CompanySegmentRepository extends CommonRepository
     /**
      * This function is required for both generating reports by company segment and for the LeuchtfeuerCompanyListWidgetBundle.
      *
-     * @param array<int>|array{} $ids
+     * @param array<int> $ids
      *
      * @return array<int, CompanySegment>
      */
