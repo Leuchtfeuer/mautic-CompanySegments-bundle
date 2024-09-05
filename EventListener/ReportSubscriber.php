@@ -10,13 +10,12 @@ use Mautic\ReportBundle\Event\ReportBuilderEvent;
 use Mautic\ReportBundle\Event\ReportGeneratorEvent;
 use Mautic\ReportBundle\ReportEvents;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ReportSubscriber implements EventSubscriberInterface
 {
-    public const CONTEXT_COMPANY_SEGMENTS         = CompanySegment::TABLE_NAME;
+    public const CONTEXT_COMPANY_SEGMENTS         = 'company_segments';
     public const COMPANY_TABLE                    = 'companies';
     public const COMPANIES_PREFIX                 = 'comp';
     public const COMPANY_SEGMENTS_XREF_PREFIX     = 'csx';

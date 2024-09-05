@@ -9,27 +9,55 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener\ReportSubscriber
 use Mautic\LeadBundle\Model\CompanyReportData;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use Doctrine\DBAL\Connection;
+use Symfony\Contracts\Translation\TranslatorInterface;
+use Mautic\ChannelBundle\Helper\ChannelListHelper;
+use Mautic\ReportBundle\Helper\ReportHelper;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ReportSubscriberTest extends TestCase
 {
-
     private ReportSubscriber $reportSubscriber;
     private MockObject $reportBuilderEventMock;
     private MockObject $companyReportDataMock;
     private MockObject $companySegmentRepositoryMock;
     private MockObject $dbMock;
+    private MockObject $translatorMock;
+    private MockObject $channelListHelperMock;
+    private ReportHelper $reportHelper;
+    private MockObject $eventDispatcherMock;
 
-    protected function setUp(): void{
-        $this->reportBuilderEventMock             = $this->createMock(ReportBuilderEvent::class);
-        $this->companyReportDataMock              = $this->createMock(CompanyReportData::class);
-        $this->companySegmentRepositoryMock       = $this->createMock(CompanySegmentRepository::class);
-        $this->dbMock                             = $this->createMock(Connection::class);
-        $this->reportSubscriber                 = new ReportSubscriber(
+    protected function setUp(): void
+    {
+        $this->companyReportDataMock = $this->createMock(CompanyReportData::class);
+        $this->companySegmentRepositoryMock = $this->createMock(CompanySegmentRepository::class);
+        $this->dbMock = $this->createMock(Connection::class);
+        $this->translatorMock = $this->createMock(TranslatorInterface::class);
+        $this->channelListHelperMock = $this->createMock(ChannelListHelper::class);
+        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+
+
+        $this->reportHelper = new ReportHelper($this->eventDispatcherMock);
+
+
+        $this->reportBuilderEventMock = $this->getMockBuilder(ReportBuilderEvent::class)
+            ->setConstructorArgs([
+                $this->translatorMock,
+                $this->channelListHelperMock,
+                'company_segments', // context
+                [],
+                $this->reportHelper,
+                null
+            ])
+            ->onlyMethods(['checkContext'])
+            ->getMock();
+
+        $this->reportSubscriber = new ReportSubscriber(
             $this->companyReportDataMock,
             $this->companySegmentRepositoryMock,
             $this->dbMock
         );
     }
+
 
 
     public function testCheckIfEventHasCompanySegmentContext()
@@ -119,18 +147,18 @@ class ReportSubscriberTest extends TestCase
             ->method('getCompanyData')
             ->willReturn($columns);
 
-        //checken ob filteredColumns count 16 ist (weil auf 16 keys reduziert werden soll)
 
+        $this->companySegmentRepositoryMock->expects($this->once())
+            ->method('getSegmentObjectsViaListOfIDs')
+            ->willReturn([]);
 
 
         $this->reportSubscriber->onReportBuilder($this->reportBuilderEventMock);
+        $tables = $this->reportBuilderEventMock->getTables();
+
+
+        $this->assertArrayHasKey('company_segments', $this->reportBuilderEventMock->getTables());
 
 
     }
-
-    //getFilterSegmentsTest
-    //fixtures laufen lassen
-    //Funktion ausführen (muss eventuell noch sagen, was Funktion returnen soll, wäre aber besser über fixtures)
-    //return value spezifizieren
-
 }
