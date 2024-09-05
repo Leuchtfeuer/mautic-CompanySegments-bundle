@@ -10,13 +10,12 @@ use Mautic\ReportBundle\Event\ReportBuilderEvent;
 use Mautic\ReportBundle\Event\ReportGeneratorEvent;
 use Mautic\ReportBundle\ReportEvents;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ReportSubscriber implements EventSubscriberInterface
 {
-    public const CONTEXT_COMPANY_SEGMENTS         = CompanySegment::TABLE_NAME;
+    public const CONTEXT_COMPANY_SEGMENTS         = 'company_segments';
     public const COMPANY_TABLE                    = 'companies';
     public const COMPANIES_PREFIX                 = 'comp';
     public const COMPANY_SEGMENTS_XREF_PREFIX     = 'csx';
@@ -66,7 +65,8 @@ class ReportSubscriber implements EventSubscriberInterface
 
         $segmentList = $this->getFilterSegments();
 
-        $segmentFilter = [self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id' => [
+        $filters                                                   = $filteredColumns;
+        $filters[self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id'] = [
             'alias'     => 'companysegments',
             'label'     => 'mautic.company_segments.report.company_segments',
             'type'      => 'select',
@@ -77,9 +77,7 @@ class ReportSubscriber implements EventSubscriberInterface
                 'empty'    => 'mautic.core.operator.isempty',
                 'notEmpty' => 'mautic.core.operator.isnotempty',
             ],
-        ],
         ];
-        $filters = array_merge($filteredColumns, $segmentFilter);
 
         $event->addTable(
             self::CONTEXT_COMPANY_SEGMENTS,
@@ -93,14 +91,16 @@ class ReportSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @return array<int|string, string>
+     * @return array<string, string>
      */
     public function getFilterSegments(): array
     {
         $segments    = $this->companySegmentRepository->getSegmentObjectsViaListOfIDs();
         $segmentList = [];
         foreach ($segments as $segment) {
-            $segmentList[(string) $segment->getId()] = (string) $segment->getName();
+            /** @var string $id */
+            $id               = (string) $segment->getId();
+            $segmentList[$id] = (string) $segment->getName();
         }
 
         return $segmentList;
@@ -123,7 +123,7 @@ class ReportSubscriber implements EventSubscriberInterface
 
         $expr     = $qb->expr();
 
-        if (boolval(count($filters))) {
+        if (count($filters) > 0) {
             foreach ($filters as $i => $filter) {
                 $exprFunction = $filter['expr'] ?? $filter['condition'];
                 $paramName    = sprintf('i%dc%s', $i, InputHelper::alphanum($filter['column']));
