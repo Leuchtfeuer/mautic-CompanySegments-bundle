@@ -26,6 +26,9 @@ jobs:
             php-versions: 8.2
           - mautic-versions: 5.x
             php-versions: 8.3
+        exclude:
+          - mautic-versions: 5.x # 5.2 will not support php-8.0
+            php-versions: 8.0
     services:
       database:
         image: ${{ matrix.db-types == 'mysql' && 'mysql:8.0' || 'mariadb:10.3' }}
@@ -236,7 +239,7 @@ jobs:
   bundle:
     runs-on: ubuntu-latest
 
-    # these should contain latest stable PHP and Mautic versions
+    # these should contain latest stable PHP and next Mautic version, to warn about the baseline changes.
     strategy:
       fail-fast: false
       matrix:
