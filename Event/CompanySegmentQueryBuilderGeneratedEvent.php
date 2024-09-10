@@ -15,7 +15,7 @@ class CompanySegmentQueryBuilderGeneratedEvent extends Event
 {
     public function __construct(
         private CompanySegment $companySegment,
-        private QueryBuilder $queryBuilder
+        private QueryBuilder $queryBuilder,
     ) {
     }
 

@@ -17,7 +17,7 @@ class ButtonSubscriber implements EventSubscriberInterface
     public function __construct(
         private Config $config,
         private TranslatorInterface $translator,
-        private RouterInterface $router
+        private RouterInterface $router,
     ) {
     }
 

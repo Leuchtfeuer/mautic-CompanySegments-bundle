@@ -36,7 +36,7 @@ class CompanyModelDecorated extends CompanyModel
         UserHelper $userHelper,
         LoggerInterface $mauticLogger,
         CoreParametersHelper $coreParametersHelper,
-        FieldList $fieldList
+        FieldList $fieldList,
     ) {
         parent::__construct($leadFieldModel, $emailValidator, $companyDeduper, $em, $security, $dispatcher, $router, $translator, $userHelper, $mauticLogger, $coreParametersHelper, $fieldList);
     }
