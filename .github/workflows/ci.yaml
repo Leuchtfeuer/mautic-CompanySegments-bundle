@@ -214,6 +214,7 @@ jobs:
         run: |
           if [[ "${{ matrix.commands }}" == "PHPStan" ]]; then 
             composer remove --dev rector/rector
+            rm rector.php
             php ${{ env.PLUGIN_DIR }}/.github/phpstan-config.php
             cat phpstan.neon
             export SYMFONY_ENV=dev
