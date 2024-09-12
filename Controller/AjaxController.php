@@ -24,7 +24,7 @@ class AjaxController extends CommonAjaxController
         Request $request,
         FormFactoryInterface $formFactory,
         FormAdjustmentsProviderInterface $formAdjustmentsProvider,
-        CompanySegmentModel $companySegmentModel
+        CompanySegmentModel $companySegmentModel,
     ): JsonResponse {
         $fieldAlias  = InputHelper::clean($request->request->get('fieldAlias'));
         $fieldObject = InputHelper::clean($request->request->get('fieldObject'));

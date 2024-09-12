@@ -30,7 +30,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
         private CompanySegmentQueryBuilder $companySegmentQueryBuilder,
         private EntityManager $entityManager,
         private ContactSegmentFilterFactory $leadSegmentFilterFactory,
-        EventDispatcherInterface $dispatcher
+        EventDispatcherInterface $dispatcher,
     ) {
         parent::__construct($randomParameterNameService, $dispatcher);
     }

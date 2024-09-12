@@ -22,7 +22,7 @@ class CompanySegmentService
     public function __construct(
         private ContactSegmentFilterFactory $contactSegmentFilterFactory,
         private CompanySegmentQueryBuilder $companySegmentQueryBuilder,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
     }
 
