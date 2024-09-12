@@ -4,7 +4,9 @@ namespace EventListener;
 
 use DateTime;
 use DateTimeZone;
+use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Mautic\LeadBundle\Segment\Query\Expression\ExpressionBuilder;
 use Mautic\ReportBundle\Entity\Report;
 use Mautic\ReportBundle\Event\ReportGeneratorEvent;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -33,6 +35,8 @@ class ReportSubscriberTest extends TestCase
     private MockObject $eventDispatcherMock;
     private MockObject $queryBuilderMock;
     private MockObject $reportMock;
+
+    private MockObject $exprMock;
 
     private array $columns;
     private array $options;
@@ -131,10 +135,9 @@ class ReportSubscriberTest extends TestCase
                     ]
                 ]
             ),
-            /*
+
             "dateFrom" => new DateTime('2024-08-11 00:00:00', new DateTimeZone('UTC')),
             "dateTo" => new DateTime('2024-09-11 11:17:05', new DateTimeZone('UTC')),
-            */
             "dynamicFilters" => []
         ];
 
@@ -145,6 +148,14 @@ class ReportSubscriberTest extends TestCase
         $this->channelListHelperMock = $this->createMock(ChannelListHelper::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
         $this->queryBuilderMock = $this->createMock(QueryBuilder::class);
+        $this->queryBuilderMock->method('select')->willReturnSelf();
+        $this->queryBuilderMock->method('from')->willReturnSelf();
+        $this->queryBuilderMock->method('andWhere')->willReturnSelf();
+        $this->exprMock = $this->createMock(ExpressionBuilder::class);
+        $this->queryBuilderMock->method('expr')->willReturn($this->exprMock);
+
+
+
         $this->reportMock = $this->createMock(Report::class);
 
 
@@ -172,6 +183,15 @@ class ReportSubscriberTest extends TestCase
             ])
             ->onlyMethods(['checkContext'])
             ->getMock();
+
+
+
+
+
+
+        // Set up the dbMock to return the queryBuilderMock
+        $this->dbMock->method('createQueryBuilder')->willReturn($this->queryBuilderMock);
+
 
         $this->reportSubscriber = new ReportSubscriber(
             $this->companyReportDataMock,
@@ -258,5 +278,76 @@ class ReportSubscriberTest extends TestCase
             ->method('checkContext')
             ->willReturn(false);
     }
+
+
+    public function  testGetCompanySegmentConditionWrongFilterColumn()
+    {
+        $result = $this->reportSubscriber->getCompanySegmentCondition([]);
+        $this->assertEquals(null,$result);
+    }
+
+    public function  testGetCompanySegmentConditionWhenOperatorEqualsIn()
+    {
+          $this->queryBuilderMock->expects($this->once())->method("andWhere");
+          $this->exprMock->expects($this->exactly(2))->method('in');
+
+        $filter = [
+            'column' => 'csx.segment_id',
+            'glue' => 'and',
+            'dynamic' => null,
+            'condition' => 'in',
+            'value' => '3'
+        ];
+
+         $this->reportSubscriber->getCompanySegmentCondition($filter);
+    }
+
+    public function  testGetCompanySegmentConditionWhenOperatorEqualsNotIn()
+    {
+        $this->queryBuilderMock->expects($this->once())->method("andWhere");
+        $this->exprMock->expects($this->once())->method('in');
+        $this->exprMock->expects($this->once())->method('notIn');
+
+        $filter = [
+            'column' => 'csx.segment_id',
+            'glue' => 'and',
+            'dynamic' => null,
+            'condition' => 'notIn',
+            'value' => '3'
+        ];
+
+        $this->reportSubscriber->getCompanySegmentCondition($filter);
+    }
+
+    public function  testGetCompanySegmentConditionWhenOperatorEqualsEmpty()
+    {
+        $this->exprMock->expects($this->once())->method('notIn');
+
+        $filter = [
+            'column' => 'csx.segment_id',
+            'glue' => 'and',
+            'dynamic' => null,
+            'condition' => 'empty',
+            'value' => '3'
+        ];
+
+        $this->reportSubscriber->getCompanySegmentCondition($filter);
+    }
+
+    public function  testGetCompanySegmentConditionWhenOperatorEqualsNotEmpty()
+    {
+        $this->exprMock->expects($this->once())->method('in');
+
+        $filter = [
+            'column' => 'csx.segment_id',
+            'glue' => 'and',
+            'dynamic' => null,
+            'condition' => 'notEmpty',
+            'value' => '3'
+        ];
+
+        $this->reportSubscriber->getCompanySegmentCondition($filter);
+    }
+
 
 }

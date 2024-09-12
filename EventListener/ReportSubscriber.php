@@ -247,7 +247,7 @@ class ReportSubscriber implements EventSubscriberInterface
      */
     public function getCompanySegmentCondition(array $filter): ?string
     {
-        if (self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id' !== $filter['column']) {
+        if (!array_key_exists('column', $filter) || self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id' !== $filter['column']) {
             return null;
         }
 
