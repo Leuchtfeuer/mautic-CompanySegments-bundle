@@ -22,7 +22,7 @@ class CompanySegmentFiltersChoicesEvent extends AbstractCustomRequestEvent
         private array $operators,
         protected TranslatorInterface $translator,
         ?Request $request = null,
-        private string $search = ''
+        private string $search = '',
     ) {
         parent::__construct($request);
     }

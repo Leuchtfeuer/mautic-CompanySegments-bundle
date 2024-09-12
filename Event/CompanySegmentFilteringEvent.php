@@ -24,7 +24,7 @@ class CompanySegmentFilteringEvent extends CommonEvent
         private ContactSegmentFilterCrate $details,
         private string $alias,
         private QueryBuilder $queryBuilder,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
     ) {
         $this->em              = $entityManager;
         $this->isFilteringDone = false;

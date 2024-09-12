@@ -13,7 +13,7 @@ class CompanySegmentActionModel
     public function __construct(
         private CompanyModel $companyModel,
         private CompanySegmentModel $companySegmentModel,
-        private CorePermissions $security
+        private CorePermissions $security,
     ) {
     }
 

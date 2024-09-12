@@ -30,7 +30,7 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
         private CompanySegmentModel $companySegmentModel,
         private TypeOperatorProviderInterface $typeOperatorProvider,
         private FieldChoicesProviderInterface $fieldChoicesProvider,
-        private TranslatorInterface $translator
+        private TranslatorInterface $translator,
     ) {
     }
 
