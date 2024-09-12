@@ -18,7 +18,7 @@ class SegmentPreRebuildSegmentEvent extends CommonEvent
      */
     public function __construct(
         protected array $list,
-        bool $isNew = false
+        bool $isNew = false,
     ) {
         $this->isNew = $isNew;
     }

@@ -35,7 +35,7 @@ class CompanySegmentQueryBuilder
         private CompanyRepository $companyRepository,
         private CompanySegmentRepository $companySegmentRepository,
         private RandomParameterName $randomParameterName,
-        private EventDispatcherInterface $dispatcher
+        private EventDispatcherInterface $dispatcher,
     ) {
     }
 

@@ -16,7 +16,7 @@ class CircularDependencyValidator extends ConstraintValidator
 {
     public function __construct(
         private CompanySegmentModel $model,
-        private RequestStack $requestStack
+        private RequestStack $requestStack,
     ) {
     }
 

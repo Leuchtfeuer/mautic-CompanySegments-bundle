@@ -28,7 +28,7 @@ class CompanySegmentType extends AbstractType
 {
     public function __construct(
         private TranslatorInterface $translator,
-        private CompanySegmentModel $companySegmentModel
+        private CompanySegmentModel $companySegmentModel,
     ) {
     }
 

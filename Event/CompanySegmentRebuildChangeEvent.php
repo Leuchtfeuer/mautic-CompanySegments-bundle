@@ -16,7 +16,7 @@ abstract class CompanySegmentRebuildChangeEvent extends Event
     public function __construct(
         private array $companies,
         private CompanySegment $companySegment,
-        private ?\DateTime $date = null
+        private ?\DateTime $date = null,
     ) {
     }
 
