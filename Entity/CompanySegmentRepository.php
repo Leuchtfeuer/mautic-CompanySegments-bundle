@@ -121,11 +121,11 @@ class CompanySegmentRepository extends CommonRepository
     /**
      * This function is required for both generating reports by company segment and for the LeuchtfeuerCompanyListWidgetBundle.
      *
-     * @param array<int|string> $ids
+     * @param array<int> $ids
      *
      * @return array<int, CompanySegment>
      */
-    public function getSegmentObjectsViaListOfIDs(array $ids): array
+    public function getSegmentObjectsViaListOfIDs(array $ids = []): array
     {
         $q = $this->getEntityManager()->createQueryBuilder()
             ->from(CompanySegment::class, CompanySegment::DEFAULT_ALIAS, CompanySegment::DEFAULT_ALIAS.'.id');
