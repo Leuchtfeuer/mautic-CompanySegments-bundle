@@ -7,10 +7,9 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\ChannelBundle\Helper\ChannelListHelper;
 use Mautic\LeadBundle\Model\CompanyReportData;
 use Mautic\LeadBundle\Segment\Query\Expression\ExpressionBuilder;
-use Mautic\ReportBundle\Entity\Report;
 use Mautic\ReportBundle\Event\ReportBuilderEvent;
-use Mautic\ReportBundle\Event\ReportGeneratorEvent;
 use Mautic\ReportBundle\Helper\ReportHelper;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener\ReportSubscriber;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -21,7 +20,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ReportSubscriberTest extends TestCase
 {
     private ReportSubscriber $reportSubscriber;
-    private MockObject $reportBuilderEventMock;
+    private MockObject&ReportBuilderEvent $reportBuilderEventMock;
     private MockObject $companyReportDataMock;
     private MockObject $companySegmentRepositoryMock;
     private MockObject $dbMock;
@@ -154,11 +153,14 @@ class ReportSubscriberTest extends TestCase
         );
     }
 
+    /**
+     * @return array<int, CompanySegment>
+     */
     private function createFakeCompanySegments(): array
     {
         $segments = [];
         for ($i = 1; $i <= 4; ++$i) {
-            $segment = $this->createMock(\MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment::class);
+            $segment = $this->createMock(CompanySegment::class);
             $segment->method('getId')->willReturn($i);
             $segment->method('getName')->willReturn(chr(96 + $i)); // 'a', 'b', 'c', 'd'
             $segments[$i] = $segment;
@@ -167,46 +169,46 @@ class ReportSubscriberTest extends TestCase
         return $segments;
     }
 
-    public function testOnReportBuilderAddsCompanySegmentsToReportWithCorrectColumnsAndFilters()
+    public function testOnReportBuilderAddsCompanySegmentsToReportWithCorrectColumnsAndFilters(): void
     {
-        $this->reportBuilderEventMock->expects($this->once())
+        $this->reportBuilderEventMock->expects(self::once())
             ->method('checkContext')
             ->willReturn(true);
 
-        $this->companyReportDataMock->expects($this->once())
+        $this->companyReportDataMock->expects(self::once())
             ->method('getCompanyData')
             ->willReturn($this->columns);
 
         $fakeSegments = $this->createFakeCompanySegments();
-        $this->companySegmentRepositoryMock->expects($this->once())
+        $this->companySegmentRepositoryMock->expects(self::once())
             ->method('getSegmentObjectsViaListOfIDs')
             ->willReturn($fakeSegments);
 
         $this->reportSubscriber->onReportBuilder($this->reportBuilderEventMock);
         $tables = $this->reportBuilderEventMock->getTables();
 
-        $this->assertArrayHasKey('company_segments', $tables);
-        $this->assertCount(16, $tables['company_segments']['columns']);
-        $this->assertCount(17, $tables['company_segments']['filters']);
+        self::assertArrayHasKey('company_segments', $tables);
+        self::assertCount(16, $tables['company_segments']['columns']);
+        self::assertCount(17, $tables['company_segments']['filters']);
 
         $segmentFilter = $tables['company_segments']['filters']['csx.segment_id'];
-        $this->assertIsArray($segmentFilter);
-        $this->assertArrayHasKey('list', $segmentFilter);
-        $this->assertCount(4, $segmentFilter['list']);
-        $this->assertEquals(['1' => 'a', '2' => 'b', '3' => 'c', '4' => 'd'], $segmentFilter['list']);
+        self::assertIsArray($segmentFilter);
+        self::assertArrayHasKey('list', $segmentFilter);
+        self::assertCount(4, $segmentFilter['list']);
+        self::assertEquals(['1' => 'a', '2' => 'b', '3' => 'c', '4' => 'd'], $segmentFilter['list']);
     }
 
-    public function testOnReportBuilderHandlesEmptySegmentListCorrectly()
+    public function testOnReportBuilderHandlesEmptySegmentListCorrectly(): void
     {
-        $this->reportBuilderEventMock->expects($this->once())
+        $this->reportBuilderEventMock->expects(self::once())
             ->method('checkContext')
             ->willReturn(true);
 
-        $this->companyReportDataMock->expects($this->once())
+        $this->companyReportDataMock->expects(self::once())
             ->method('getCompanyData')
             ->willReturn($this->columns);
 
-        $this->companySegmentRepositoryMock->expects($this->once())
+        $this->companySegmentRepositoryMock->expects(self::once())
             ->method('getSegmentObjectsViaListOfIDs')
             ->willReturn([]);
 
@@ -214,41 +216,43 @@ class ReportSubscriberTest extends TestCase
         $tables        = $this->reportBuilderEventMock->getTables();
         $segmentFilter = $tables['company_segments']['filters']['csx.segment_id'];
 
-        $this->assertArrayHasKey('company_segments', $tables);
-        $this->assertCount(16, $tables['company_segments']['columns']);
-        $this->assertCount(17, $tables['company_segments']['filters']);
+        self::assertArrayHasKey('company_segments', $tables);
+        self::assertCount(16, $tables['company_segments']['columns']);
+        self::assertCount(17, $tables['company_segments']['filters']);
 
-        $this->assertIsArray($segmentFilter);
-        $this->assertArrayHasKey('list', $segmentFilter);
-        $this->assertEmpty($segmentFilter['list']);
+        self::assertIsArray($segmentFilter);
+        self::assertArrayHasKey('list', $segmentFilter);
+        self::assertEmpty($segmentFilter['list']);
 
-        $this->assertEquals('select', $segmentFilter['type']);
-        $this->assertArrayHasKey('operators', $segmentFilter);
-        $this->assertCount(4, $segmentFilter['operators']);
+        self::assertEquals('select', $segmentFilter['type']);
+        self::assertArrayHasKey('operators', $segmentFilter);
+        self::assertCount(4, $segmentFilter['operators']);
     }
 
-    public function testOnReportBuilderWithWrongContext()
+    public function testOnReportBuilderWithWrongContext(): void
     {
-        $this->reportBuilderEventMock->expects($this->once())
+        $this->reportBuilderEventMock->expects(self::once())
             ->method('checkContext')
             ->willReturn(false);
         $this->reportSubscriber->onReportBuilder($this->reportBuilderEventMock);
     }
 
-    public function testGetCompanySegmentConditionWrongFilterColumn()
+    public function testGetCompanySegmentConditionWrongFilterColumn(): void
     {
         $filter = [
             'column' => 'abcd',
         ];
 
         $result = $this->reportSubscriber->getCompanySegmentCondition($filter);
-        $this->assertEquals(null, $result);
+        self::assertEquals(null, $result);
     }
 
-    public function testGetCompanySegmentConditionWhenOperatorEqualsIn()
+    public function testGetCompanySegmentConditionWhenOperatorEqualsIn(): void
     {
-        $this->queryBuilderMock->expects($this->once())->method('andWhere');
-        $this->exprMock->expects($this->exactly(2))->method('in');
+        $this->queryBuilderMock->expects(self::once())
+            ->method('andWhere');
+
+        $this->exprMock->expects(self::exactly(2))->method('in')->willReturn('a');
 
         $filter = [
             'column'    => 'csx.segment_id',
@@ -261,11 +265,11 @@ class ReportSubscriberTest extends TestCase
         $this->reportSubscriber->getCompanySegmentCondition($filter);
     }
 
-    public function testGetCompanySegmentConditionWhenOperatorEqualsNotIn()
+    public function testGetCompanySegmentConditionWhenOperatorEqualsNotIn(): void
     {
-        $this->queryBuilderMock->expects($this->once())->method('andWhere');
-        $this->exprMock->expects($this->once())->method('in');
-        $this->exprMock->expects($this->once())->method('notIn');
+        $this->queryBuilderMock->expects(self::once())->method('andWhere');
+        $this->exprMock->expects(self::once())->method('in')->willReturn('a');
+        $this->exprMock->expects(self::once())->method('notIn')->willReturn('a');
 
         $filter = [
             'column'    => 'csx.segment_id',
@@ -278,9 +282,9 @@ class ReportSubscriberTest extends TestCase
         $this->reportSubscriber->getCompanySegmentCondition($filter);
     }
 
-    public function testGetCompanySegmentConditionWhenOperatorEqualsEmpty()
+    public function testGetCompanySegmentConditionWhenOperatorEqualsEmpty(): void
     {
-        $this->exprMock->expects($this->once())->method('notIn');
+        $this->exprMock->expects(self::once())->method('notIn')->willReturn('a');
 
         $filter = [
             'column'    => 'csx.segment_id',
@@ -293,9 +297,9 @@ class ReportSubscriberTest extends TestCase
         $this->reportSubscriber->getCompanySegmentCondition($filter);
     }
 
-    public function testGetCompanySegmentConditionWhenOperatorEqualsNotEmpty()
+    public function testGetCompanySegmentConditionWhenOperatorEqualsNotEmpty(): void
     {
-        $this->exprMock->expects($this->once())->method('in');
+        $this->exprMock->expects(self::once())->method('in')->willReturn('a');
 
         $filter = [
             'column'    => 'csx.segment_id',

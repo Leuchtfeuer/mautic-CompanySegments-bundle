@@ -256,6 +256,7 @@ class ReportSubscriber implements EventSubscriberInterface
         }
 
         $segmentSubQuery = $this->prepareSegmentSubQuery();
+
         return $this->finalizeSubQuery($segmentSubQuery, $filter);
     }
 
@@ -282,11 +283,15 @@ class ReportSubscriber implements EventSubscriberInterface
             $segmentSubQuery->andWhere($segmentSubQuery->expr()->in(self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id', $filter['value']));
         }
 
+        $subQuery = $segmentSubQuery->getSQL();
+
         if (in_array($filter['condition'], ['in', 'notEmpty'], true)) {
-            return $segmentSubQuery->expr()->in(self::COMPANIES_PREFIX.'.id', $segmentSubQuery->getSQL());
+            return $segmentSubQuery->expr()->in(self::COMPANIES_PREFIX.'.id', '('.$subQuery.')');
         } elseif (in_array($filter['condition'], ['notIn', 'empty'], true)) {
-            return $segmentSubQuery->expr()->notIn(self::COMPANIES_PREFIX.'.id', $segmentSubQuery->getSQL());
+            return $segmentSubQuery->expr()->notIn(self::COMPANIES_PREFIX.'.id', '('.$subQuery.')');
         }
+
+        throw new \InvalidArgumentException('Invalid filter condition');
     }
 
     /**
