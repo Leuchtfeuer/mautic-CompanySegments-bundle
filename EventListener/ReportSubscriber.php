@@ -99,7 +99,9 @@ class ReportSubscriber implements EventSubscriberInterface
         $segments    = $this->companySegmentRepository->getSegmentObjectsViaListOfIDs();
         $segmentList = [];
         foreach ($segments as $segment) {
-            $segmentList[(string) $segment->getId()] = (string) $segment->getName();
+            /** @var string $id */
+            $id               = (string) $segment->getId();
+            $segmentList[$id] = (string) $segment->getName();
         }
 
         return $segmentList;
