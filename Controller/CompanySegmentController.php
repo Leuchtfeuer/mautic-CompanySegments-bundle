@@ -43,7 +43,7 @@ class CompanySegmentController extends AbstractStandardFormController
         FlashBag $flashBag,
         RequestStack $requestStack,
         CorePermissions $security,
-        private SegmentDependencies $segmentDependencies
+        private SegmentDependencies $segmentDependencies,
     ) {
         parent::__construct($formFactory, $fieldHelper, $managerRegistry, $factory, $modelFactory, $userHelper, $coreParametersHelper, $dispatcher, $translator, $flashBag, $requestStack, $security);
     }

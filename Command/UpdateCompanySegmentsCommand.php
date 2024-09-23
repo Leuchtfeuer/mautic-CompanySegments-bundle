@@ -25,7 +25,7 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
         private CompanySegmentModel $companySegmentModel,
         private TranslatorInterface $translator,
         PathsHelper $pathsHelper,
-        CoreParametersHelper $coreParametersHelper
+        CoreParametersHelper $coreParametersHelper,
     ) {
         parent::__construct($pathsHelper, $coreParametersHelper);
     }

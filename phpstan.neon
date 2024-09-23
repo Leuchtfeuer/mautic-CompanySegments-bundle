@@ -23,6 +23,7 @@ parameters:
           ### below is added to base Mautic phpstan.neon ###
         - message: '##'
           path: rector.php
+          reportUnmatched: false
         - message: '#has typehint with deprecated class Mautic\\CoreBundle\\Factory\\MauticFactory#'
           count: 1
           path: Controller/BatchSegmentController.php
