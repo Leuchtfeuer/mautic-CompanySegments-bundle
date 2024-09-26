@@ -20,7 +20,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ReportSubscriberTest extends TestCase
 {
     private ReportSubscriber $reportSubscriber;
-    private MockObject&ReportBuilderEvent $reportBuilderEventMock;
+    /** @var MockObject|ReportBuilderEvent */
+    private $reportBuilderEventMock;
     private MockObject $companyReportDataMock;
     private MockObject $companySegmentRepositoryMock;
     private MockObject $dbMock;
