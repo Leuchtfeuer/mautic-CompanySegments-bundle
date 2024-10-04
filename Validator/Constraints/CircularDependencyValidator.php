@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Validator\Constraints;
 
 use Mautic\LeadBundle\Segment\OperatorOptions;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Constraint;
@@ -35,10 +34,6 @@ class CircularDependencyValidator extends ConstraintValidator
 
         $dependentSegmentIds = $this->flatten(array_map(function ($id): array {
             $entity = $this->model->getEntity($id);
-
-            if (!$entity instanceof CompanySegment) {
-                throw new UnexpectedTypeException($entity, CompanySegment::class);
-            }
 
             return $this->reduceToSegmentIds($entity->getFilters());
         }, $this->reduceToSegmentIds($filters)));

@@ -7,6 +7,7 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Tests\Command;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\PathsHelper;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Command\UpdateCompanySegmentsCommand;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -91,7 +92,7 @@ class UpdateCompanyListsCommandTest extends TestCase
         $coreParametersHelper = $this->createMock(CoreParametersHelper::class);
 
         $companySegmentModel->method('getEntity')
-            ->willReturn(null);
+            ->willReturn(new CompanySegment());
 
         $output = $this->createMock(OutputInterface::class);
         $output->expects(self::once())

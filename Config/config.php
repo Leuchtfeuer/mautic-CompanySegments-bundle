@@ -24,6 +24,14 @@ return [
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\BatchSegmentController::indexAction',
             ],
         ],
+        'api' => [
+            'mautic_api_companysegments' => [
+                'standard_entity' => true,
+                'name'            => 'companysegments',
+                'path'            => '/companysegments',
+                'controller'      => MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\Api\CompanySegmentApiController::class,
+            ],
+        ],
     ],
     'menu' => [
         'main' => [
