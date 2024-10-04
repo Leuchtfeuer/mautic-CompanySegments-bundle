@@ -769,9 +769,9 @@ class CompanySegmentModel extends FormModel
     }
 
     /**
-     * @param int|null $id
+     * @param mixed $id
      */
-    public function getEntity($id=null): CompanySegment
+    public function getEntity($id=null): object|null
     {
         if (null === $id) {
             return new CompanySegment();

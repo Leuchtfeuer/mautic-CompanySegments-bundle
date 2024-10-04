@@ -92,15 +92,11 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
             return self::FAILURE;
         }
 
-        $batch = (int) $batch;
-
         if (null !== $max && !(is_int($max) && $max > 0)) {
             $output->writeln('<error>The --max-companies option must be a positive number or none.</error>');
 
             return self::FAILURE;
         }
-
-        $max = null !== $max ? (int) $max : null;
 
         if (!$this->checkRunStatus($input, $output, $id)) {
             return Command::SUCCESS;
