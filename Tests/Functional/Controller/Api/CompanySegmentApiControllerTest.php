@@ -44,8 +44,6 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         $data = json_decode($response->getContent(), true);
         self::assertIsArray($data);
-        self::assertIsArray($data['companysegments']);
-        self::assertIsArray($data['companysegments']['name']);
         self::assertSame('Segment test', $data['companysegment']['name']);
     }
 
@@ -62,7 +60,6 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         $data = json_decode($this->client->getResponse()->getContent(), true);
         self::assertIsArray($data);
         self::assertIsArray($data['companysegment']);
-        self::assertIsArray($data['companysegment']['name']);
         self::assertSame('Segment test', $data['companysegment']['name']);
         $companySegment = $this->em->getRepository(CompanySegment::class)->find($data['companysegment']['id']);
         self::assertInstanceof(CompanySegment::class, $companySegment);
@@ -83,7 +80,6 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         $data = json_decode($this->client->getResponse()->getContent(), true);
         self::assertIsArray($data);
         self::assertIsArray($data['companysegment']);
-        self::assertIsArray($data['companysegment']['name']);
         self::assertSame('Segment test edited', $data['companysegment']['name']);
         $companySegment = $this->em->getRepository(CompanySegment::class)->find($data['companysegment']['id']);
         self::assertInstanceof(CompanySegment::class, $companySegment);
