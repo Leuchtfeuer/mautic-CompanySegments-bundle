@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Validator\Constraints;
 
 use Mautic\LeadBundle\Segment\OperatorOptions;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 
 class CircularDependencyValidator extends ConstraintValidator
 {
