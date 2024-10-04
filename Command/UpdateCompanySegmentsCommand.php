@@ -108,6 +108,7 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
 
         if (null !== $id) {
             $segment = $this->companySegmentModel->getEntity($id);
+            assert($segment instanceof CompanySegment);
 
             if (null === $segment->getId()) {
                 $output->writeln('<error>'.$this->translator->trans('mautic.company_segments.list.rebuild.not_found', ['%id%' => $id]).'</error>');

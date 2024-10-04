@@ -293,6 +293,7 @@ class CompanySegmentController extends AbstractStandardFormController
         $security = $this->security;
 
         $segment = $model->getEntity($objectId);
+        \assert($segment instanceof CompanySegment);
 
         // set the page we came from
         $page = $request->getSession()->get('mautic.'.$this->getSessionBase().'.page', 1);
@@ -397,7 +398,7 @@ class CompanySegmentController extends AbstractStandardFormController
 
         if ('POST' === $request->getMethod()) {
             $segment = $model->getEntity($objectId);
-
+            \assert($segment instanceof CompanySegment);
             if (null === $segment->getId()) {
                 $flashes[] = [
                     'type'    => 'error',
@@ -491,6 +492,7 @@ class CompanySegmentController extends AbstractStandardFormController
             // Loop over the IDs to perform access checks pre-delete
             foreach ($toBeDeleted as $objectId) {
                 $segment = $model->getEntity($objectId);
+                \assert($segment instanceof CompanySegment);
 
                 if (null === $segment->getId()) {
                     $flashes[] = [
@@ -624,7 +626,7 @@ class CompanySegmentController extends AbstractStandardFormController
         $model = $this->getModel(CompanySegmentModel::class);
         \assert($model instanceof CompanySegmentModel);
         $segment = $model->getEntity($segmentId);
-
+        \assert($segment instanceof CompanySegment);
         \assert(null !== $this->security);
 
         // Check if exists

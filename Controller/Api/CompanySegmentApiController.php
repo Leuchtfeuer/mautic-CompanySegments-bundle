@@ -25,7 +25,6 @@ use Symfony\Component\Routing\RouterInterface;
  */
 class CompanySegmentApiController extends CommonApiController
 {
-
     public function __construct(
         CorePermissions $security,
         Translator $translator,
