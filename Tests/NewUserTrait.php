@@ -6,7 +6,7 @@ use Mautic\UserBundle\Entity\Permission;
 use Mautic\UserBundle\Entity\Role;
 use Mautic\UserBundle\Entity\User;
 use Mautic\UserBundle\Model\RoleModel;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Encoder\EncoderFactory;
 
 trait NewUserTrait
 {
@@ -54,11 +54,11 @@ trait NewUserTrait
         $user->setLastName('Doe');
         $user->setUsername($userName);
         $user->setEmail($userName.'@mautic.com');
-        $encoder = static::getContainer()->get('security.encoder_factory')->getEncoder($user);
-        \assert($encoder instanceof UserPasswordEncoderInterface);
+        $encoderFactory = self::getContainer()->get('security.encoder_factory');
+        \assert($encoderFactory instanceof EncoderFactory);
+        $encoder = $encoderFactory->getEncoder($user);
         $user->setPassword($encoder->encodePassword($password, null));
         $user->setRole($role);
-
         $this->em->persist($user);
         $this->em->flush();
 
