@@ -25,8 +25,11 @@ parameters:
           path: rector.php
           reportUnmatched: false
         - message: '#has typehint with deprecated class Mautic\\CoreBundle\\Factory\\MauticFactory#'
-          count: 3
+          count: 1
           path: Controller/BatchSegmentController.php
+        - message: '#has typehint with deprecated class Mautic\\CoreBundle\\Factory\\MauticFactory#'
+          count: 1
+          path: Controller/Api/CompanySegmentApiController.php
         - message: '#^Dead catch - Error is never thrown in the try block.$#'
           count: 1
           path: Tests/MauticMysqlTestCase.php
@@ -43,5 +46,5 @@ parameters:
           reportUnmatched: false
         - message: '#Call to deprecated method getUsername\\(\\) of class#'
           count: 2
-          path: Tests\Functional\Security\Permissions\CompanySegmentPermissionsTest.php
+          path: Tests/Functional/Security/Permissions/CompanySegmentsPermissionsTest.php
           reportUnmatched: false
