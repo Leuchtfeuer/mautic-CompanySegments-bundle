@@ -335,6 +335,7 @@ class CompanySegmentModel extends FormModel
 
         foreach ($idsNotToBeDeleted as $val) {
             $notToBeDeletedEntity = $this->getEntity($val);
+            assert($notToBeDeletedEntity instanceof CompanySegment);
 
             $name = $notToBeDeletedEntity->getName();
 

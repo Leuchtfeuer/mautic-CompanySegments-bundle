@@ -27,8 +27,11 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         $this->addCompanySegment('Segment test 2', 'segment-test-2', true);
         $this->client->request(Request::METHOD_GET, '/api/companysegments');
         $response = $this->client->getResponse();
+        self::assertNotFalse($response->getContent());
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         $data = json_decode($response->getContent(), true);
+        self::assertIsArray($data);
+        self::assertIsArray($data['companysegments']);
         self::assertCount(2, $data['companysegments']);
     }
 
@@ -37,8 +40,12 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         $companySegment = $this->addCompanySegment('Segment test', 'segment-test', true);
         $this->client->request(Request::METHOD_GET, '/api/companysegments/'.$companySegment->getId());
         $response = $this->client->getResponse();
+        self::assertNotFalse($response->getContent());
         self::assertSame(Response::HTTP_OK, $response->getStatusCode());
         $data = json_decode($response->getContent(), true);
+        self::assertIsArray($data);
+        self::assertIsArray($data['companysegments']);
+        self::assertIsArray($data['companysegments']['name']);
         self::assertSame('Segment test', $data['companysegment']['name']);
     }
 
@@ -51,9 +58,14 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         ];
         $this->client->request(Request::METHOD_POST, '/api/companysegments/new', $data);
         self::assertSame(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
+        self::assertNotFalse($this->client->getResponse()->getContent());
         $data = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertIsArray($data);
+        self::assertIsArray($data['companysegment']);
+        self::assertIsArray($data['companysegment']['name']);
         self::assertSame('Segment test', $data['companysegment']['name']);
         $companySegment = $this->em->getRepository(CompanySegment::class)->find($data['companysegment']['id']);
+        self::assertInstanceof(CompanySegment::class, $companySegment);
         self::assertSame('Segment test', $companySegment->getName());
     }
 
@@ -67,9 +79,14 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         ];
         $this->client->request(Request::METHOD_PATCH, '/api/companysegments/'.$companySegment->getId().'/edit', $data);
         self::assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        self::assertNotFalse($this->client->getResponse()->getContent());
         $data = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertIsArray($data);
+        self::assertIsArray($data['companysegment']);
+        self::assertIsArray($data['companysegment']['name']);
         self::assertSame('Segment test edited', $data['companysegment']['name']);
         $companySegment = $this->em->getRepository(CompanySegment::class)->find($data['companysegment']['id']);
+        self::assertInstanceof(CompanySegment::class, $companySegment);
         self::assertSame('Segment test edited', $companySegment->getName());
     }
 
@@ -99,7 +116,10 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         ];
         $this->client->request(Request::METHOD_POST, '/api/companysegments/batch/new', $data);
         self::assertSame(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
+        self::assertNotFalse($this->client->getResponse()->getContent());
         $data = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertIsArray($data);
+        self::assertIsArray($data['companysegments']);
         self::assertCount(2, $data['companysegments']);
         self::assertSame(Response::HTTP_CREATED, $data['statusCodes'][0]);
         self::assertSame(Response::HTTP_CREATED, $data['statusCodes'][1]);
@@ -120,10 +140,14 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         ];
         $this->client->request(Request::METHOD_POST, '/api/companysegments/batch/new', $data);
         self::assertSame(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
+        self::assertNotFalse($this->client->getResponse()->getContent());
         $data = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertIsArray($data);
+        self::assertIsArray($data['companysegments']);
         self::assertCount(1, $data['companysegments']);
         self::assertSame(Response::HTTP_CREATED, $data['statusCodes'][0]);
         self::assertSame(Response::HTTP_BAD_REQUEST, $data['statusCodes'][1]);
+        self::assertIsArray($data['errors']);
         self::assertCount(1, $data['errors']);
     }
 
@@ -150,11 +174,15 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         ];
         $this->client->request(Request::METHOD_PATCH, '/api/companysegments/batch/edit', $data);
         self::assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        self::assertNotFalse($this->client->getResponse()->getContent());
         $data = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertIsArray($data);
+        self::assertIsArray($data['companysegments']);
         self::assertCount(1, $data['companysegments']);
         self::assertSame(Response::HTTP_OK, $data['statusCodes'][0]);
         self::assertSame(Response::HTTP_NOT_FOUND, $data['statusCodes'][1]);
         self::assertSame(Response::HTTP_NOT_FOUND, $data['statusCodes'][2]);
+        self::assertIsArray($data['errors']);
         self::assertCount(2, $data['errors']);
     }
 
