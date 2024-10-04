@@ -41,10 +41,7 @@ parameters:
           count: 1
           path: Model/CompanyModelDecorated.php
           reportUnmatched: false
-        - message: """
-          				#^Call to deprecated method getUsername\\(\\) of class Mautic\\\\UserBundle\\\\Entity\\\\User\\:
-          				since Symfony 5\\.3, use getUserIdentifier\\(\\) instead$#
-          			"""
+        - message: '#Call to deprecated method getUsername\\(\\) of class#'
           count: 2
           path: Tests\Functional\Security\Permissions\CompanySegmentPermissionsTest.php
           reportUnmatched: false
