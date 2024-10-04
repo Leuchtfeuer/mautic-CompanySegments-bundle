@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 
 class CircularDependencyValidator extends ConstraintValidator
 {
@@ -34,7 +35,7 @@ class CircularDependencyValidator extends ConstraintValidator
 
         $dependentSegmentIds = $this->flatten(array_map(function ($id): array {
             $entity = $this->model->getEntity($id);
-
+            assert($entity instanceof CompanySegment);
             return $this->reduceToSegmentIds($entity->getFilters());
         }, $this->reduceToSegmentIds($filters)));
 

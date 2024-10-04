@@ -38,7 +38,7 @@ class CompanySegmentApiController extends CommonApiController
         EventDispatcherInterface $dispatcher,
         CoreParametersHelper $coreParametersHelper,
         MauticFactory $factory,
-        private CompanySegmentModel $companySegmentModel
+        private CompanySegmentModel $companySegmentModel,
     ) {
         $this->model             = $this->companySegmentModel;
         $this->entityClass       = CompanySegment::class;
