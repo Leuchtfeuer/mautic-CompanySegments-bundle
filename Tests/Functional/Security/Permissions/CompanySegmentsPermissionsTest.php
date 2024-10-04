@@ -233,7 +233,10 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         ];
         $this->client->request(Request::METHOD_PATCH, '/api/companysegments/batch/edit', $data);
         self::assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        self::assertNotFalse($this->client->getResponse()->getContent());
         $response = json_decode($this->client->getResponse()->getContent(), true);
+        self::assertIsArray($response);
+        self::assertIsArray($response['statusCodes']);
         self::assertSame(Response::HTTP_FORBIDDEN, $response['statusCodes'][0]);
     }
 

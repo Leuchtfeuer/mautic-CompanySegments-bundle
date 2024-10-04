@@ -53,7 +53,7 @@ trait NewUserTrait
         $user->setLastName('Doe');
         $user->setUsername($userName);
         $user->setEmail($userName.'@mautic.com');
-        $encoder = static::getContainer()->get('security.encoder_factory')->getEncoder($user);
+        $encoder = self::getContainer()->get('security.encoder_factory')->getEncoder($user);
         $user->setPassword($encoder->encodePassword($password, null));
         $user->setRole($role);
 

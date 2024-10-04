@@ -769,7 +769,7 @@ class CompanySegmentModel extends FormModel
         return 'lead:lists';
     }
 
-    public function getEntity($id=null): ?object
+    public function getEntity(?int $id=null): ?object
     {
         if (null === $id) {
             return new CompanySegment();
