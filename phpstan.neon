@@ -43,3 +43,5 @@ parameters:
           reportUnmatched: false
         - message: '#Call to deprecated method getUsername\() of class Symfony\\Component\\Security\\Core\\User\\User#'
           count: 2
+          path: Tests\Functional\Security\Permissions\CompanySegmentPermissionsTest.php
+          reportUnmatched: false
