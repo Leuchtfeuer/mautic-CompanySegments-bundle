@@ -80,13 +80,13 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
         $output                = true === $input->getOption('quiet') ? new NullOutput() : $output;
         $excludeSegments       = $input->getOption('exclude');
 
-        if (null !== $id && !(is_numeric($id) && $id > 0)) {
+        if (null !== $id && !(is_int($id) && $id > 0)) {
             $output->writeln('<error>The --segment-id option must be a positive number or none.</error>');
 
             return self::FAILURE;
         }
 
-        if (!is_numeric($batch) || $batch < 1) {
+        if (!is_int($batch) || $batch < 1) {
             $output->writeln('<error>The --batch-limit option must be a positive number.</error>');
 
             return self::FAILURE;
@@ -94,7 +94,7 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
 
         $batch = (int) $batch;
 
-        if (null !== $max && !(is_numeric($max) && $max > 0)) {
+        if (null !== $max && !(is_int($max) && $max > 0)) {
             $output->writeln('<error>The --max-companies option must be a positive number or none.</error>');
 
             return self::FAILURE;

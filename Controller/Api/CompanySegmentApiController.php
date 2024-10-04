@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\Api;
 
 use Doctrine\Persistence\ManagerRegistry;
@@ -18,8 +20,12 @@ use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
 
+/**
+ * @extends CommonApiController<CompanySegment>
+ */
 class CompanySegmentApiController extends CommonApiController
 {
+
     public function __construct(
         CorePermissions $security,
         Translator $translator,

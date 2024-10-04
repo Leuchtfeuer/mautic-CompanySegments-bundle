@@ -28,8 +28,9 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         // Disable the default logging in via username and password.
         $this->clientServer = [];
         $this->setUpSymfony($this->configParams);
-        $this->loginUser($user->getUsername());
-        $this->client->setServerParameter('PHP_AUTH_USER', $user->getUsername());
+        $username = method_exists($user, 'getUserIdentifier') ? $user->getUserIdentifier() : $user->getUsername();
+        $this->loginUser($username);
+        $this->client->setServerParameter('PHP_AUTH_USER', $username);
         $this->client->setServerParameter('PHP_AUTH_PW', $password);
     }
 
@@ -41,7 +42,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         $user        = $this->newUserWithPermission($username, $password, false, $permissions);
         $this->newLogin($user, $password);
         $this->client->request(Request::METHOD_GET, '/api/companysegments');
-        $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithoutPermissionToView(): void
@@ -52,7 +53,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         $user        = $this->newUserWithPermission($username, $password, false, $permissions);
         $this->newLogin($user, $password);
         $this->client->request(Request::METHOD_GET, '/api/companysegments');
-        $this->assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithPermissionToViewOne(): void
@@ -64,7 +65,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         $this->newLogin($user, $password);
         $companySegment = $this->addCompanySegment('Segment test', 'segment-test', true);
         $this->client->request(Request::METHOD_GET, '/api/companysegments/'.$companySegment->getId());
-        $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithoutPermissionToViewOne(): void
@@ -76,7 +77,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         $this->newLogin($user, $password);
         $companySegment = $this->addCompanySegment('Segment test', 'segment-test', true);
         $this->client->request(Request::METHOD_GET, '/api/companysegments/'.$companySegment->getId());
-        $this->assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithPermissionToSave(): void
@@ -94,7 +95,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         ];
 
         $this->client->request(Request::METHOD_POST, '/api/companysegments/new', $data);
-        $this->assertSame(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithoutPermissionToSave(): void
@@ -105,7 +106,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         $user        = $this->newUserWithPermission($username, $password, false, $permissions);
         $this->newLogin($user, $password);
         $this->client->request(Request::METHOD_POST, '/api/companysegments/new', []);
-        $this->assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithPermissionToEdit(): void
@@ -123,7 +124,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
             'id'          => $companySegment->getId(),
         ];
         $this->client->request(Request::METHOD_PATCH, '/api/companysegments/'.$companySegment->getId().'/edit', $data);
-        $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithoutPermissionToEdit(): void
@@ -141,7 +142,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
             'id'          => $companySegment->getId(),
         ];
         $this->client->request(Request::METHOD_PATCH, '/api/companysegments/'.$companySegment->getId().'/edit', $data);
-        $this->assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithPermissionToDelete(): void
@@ -153,7 +154,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         $this->newLogin($user, $password);
         $companySegment = $this->addCompanySegment('Segment test', 'segment-test', true);
         $this->client->request(Request::METHOD_DELETE, '/api/companysegments/'.$companySegment->getId().'/delete');
-        $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithoutPermissionToDelete(): void
@@ -165,7 +166,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
         $this->newLogin($user, $password);
         $companySegment = $this->addCompanySegment('Segment test', 'segment-test', true);
         $this->client->request(Request::METHOD_DELETE, '/api/companysegments/'.$companySegment->getId().'/delete');
-        $this->assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithPermissionToBatchAddCompaniesSegments(): void
@@ -188,7 +189,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
             ],
         ];
         $this->client->request(Request::METHOD_POST, '/api/companysegments/batch/new', $data);
-        $this->assertSame(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_CREATED, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithoutPermissionToBatchAddCompaniesSegments(): void
@@ -211,7 +212,7 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
             ],
         ];
         $this->client->request(Request::METHOD_POST, '/api/companysegments/batch/new', $data);
-        $this->assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
     }
 
     public function testUserWithPermissionToBatchEditFailCompaniesSegments(): void
@@ -231,9 +232,9 @@ class CompanySegmentsPermissionsTest extends MauticMysqlTestCase
             ],
         ];
         $this->client->request(Request::METHOD_PATCH, '/api/companysegments/batch/edit', $data);
-        $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        self::assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
         $response = json_decode($this->client->getResponse()->getContent(), true);
-        $this->assertSame(Response::HTTP_FORBIDDEN, $response['statusCodes'][0]);
+        self::assertSame(Response::HTTP_FORBIDDEN, $response['statusCodes'][0]);
     }
 
     private function addCompanySegment(string $name, string $alias, bool $isPublished = true): CompanySegment
