@@ -63,7 +63,7 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         self::assertSame('Segment test', $data['companysegment']['name']);
         $companySegment = $this->em->getRepository(CompanySegment::class)->find($data['companysegment']['id']);
         self::assertNotNull($companySegment);
-        static::assertSame(CompanySegment::class, $companySegment);
+        self::assertSame(CompanySegment::class, $companySegment);
         self::assertSame('Segment test', $companySegment->getName());
     }
 
@@ -84,7 +84,7 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         self::assertSame('Segment test edited', $data['companysegment']['name']);
         $companySegment = $this->em->getRepository(CompanySegment::class)->find($data['companysegment']['id']);
         self::assertNotNull($companySegment);
-        assert($companySegment instanceof CompanySegment);
+        self::assertSame(CompanySegment::class, $companySegment);
         self::assertSame('Segment test edited', $companySegment->getName());
     }
 

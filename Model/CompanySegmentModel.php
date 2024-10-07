@@ -769,9 +769,6 @@ class CompanySegmentModel extends FormModel
         return 'lead:lists';
     }
 
-    /**
-     * @param mixed $id
-     */
     public function getEntity($id=null): ?object
     {
         if (null === $id) {
