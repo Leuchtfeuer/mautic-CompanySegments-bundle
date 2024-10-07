@@ -27,6 +27,9 @@ parameters:
         - message: '#has typehint with deprecated class Mautic\\CoreBundle\\Factory\\MauticFactory#'
           count: 1
           path: Controller/BatchSegmentController.php
+        - message: '#has typehint with deprecated class Mautic\\CoreBundle\\Factory\\MauticFactory#'
+          count: 1
+          path: Controller/Api/CompanySegmentApiController.php
         - message: '#^Dead catch - Error is never thrown in the try block.$#'
           count: 1
           path: Tests/MauticMysqlTestCase.php
@@ -40,4 +43,12 @@ parameters:
         - message: '#Method Mautic\\LeadBundle\\Model\\CompanyModel::__construct\(\) invoked with 12 parameters, 11 required.#'
           count: 1
           path: Model/CompanyModelDecorated.php
+          reportUnmatched: false
+        - message: '#Call to deprecated method getUsername\(\) of class Mautic\\UserBundle\\Entity\\User#'
+          count: 2
+          path: Tests/Functional/Security/Permissions/CompanySegmentsPermissionsTest.php
+          reportUnmatched: false
+        - message: '#Parameter \#1 \$id \(int\|null\) of method MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Model\\CompanySegmentModel::getEntity\(\) should be contravariant with parameter \$id \(mixed\) of method #'
+          count: 1
+          path: Model/CompanySegmentModel.php
           reportUnmatched: false

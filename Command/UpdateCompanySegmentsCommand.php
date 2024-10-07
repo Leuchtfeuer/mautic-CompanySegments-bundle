@@ -80,27 +80,23 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
         $output                = true === $input->getOption('quiet') ? new NullOutput() : $output;
         $excludeSegments       = $input->getOption('exclude');
 
-        if (null !== $id && !(is_numeric($id) && $id > 0)) {
+        if (null !== $id && !(is_int($id) && $id > 0)) {
             $output->writeln('<error>The --segment-id option must be a positive number or none.</error>');
 
             return self::FAILURE;
         }
 
-        if (!is_numeric($batch) || $batch < 1) {
+        if (!is_int($batch) || $batch < 1) {
             $output->writeln('<error>The --batch-limit option must be a positive number.</error>');
 
             return self::FAILURE;
         }
 
-        $batch = (int) $batch;
-
-        if (null !== $max && !(is_numeric($max) && $max > 0)) {
+        if (null !== $max && !(is_int($max) && $max > 0)) {
             $output->writeln('<error>The --max-companies option must be a positive number or none.</error>');
 
             return self::FAILURE;
         }
-
-        $max = null !== $max ? (int) $max : null;
 
         if (!$this->checkRunStatus($input, $output, $id)) {
             return Command::SUCCESS;
@@ -112,8 +108,9 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
 
         if (null !== $id) {
             $segment = $this->companySegmentModel->getEntity($id);
+            assert($segment instanceof CompanySegment);
 
-            if (!$segment instanceof CompanySegment) {
+            if (null === $segment->getId()) {
                 $output->writeln('<error>'.$this->translator->trans('mautic.company_segments.list.rebuild.not_found', ['%id%' => $id]).'</error>');
 
                 return Command::FAILURE;

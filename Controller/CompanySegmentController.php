@@ -293,11 +293,12 @@ class CompanySegmentController extends AbstractStandardFormController
         $security = $this->security;
 
         $segment = $model->getEntity($objectId);
-        \assert(null === $segment || $segment instanceof CompanySegment);
+        \assert($segment instanceof CompanySegment);
+
         // set the page we came from
         $page = $request->getSession()->get('mautic.'.$this->getSessionBase().'.page', 1);
 
-        if (null === $segment) {
+        if (null === $segment->getId()) {
             // set the return URL
             $returnUrl = $this->generateUrl('mautic_company_segments_index', ['page' => $page]);
 
@@ -397,9 +398,8 @@ class CompanySegmentController extends AbstractStandardFormController
 
         if ('POST' === $request->getMethod()) {
             $segment = $model->getEntity($objectId);
-            \assert(null === $segment || $segment instanceof CompanySegment);
-
-            if (null === $segment) {
+            \assert($segment instanceof CompanySegment);
+            if (null === $segment->getId()) {
                 $flashes[] = [
                     'type'    => 'error',
                     'msg'     => 'mautic.company_segments.error.notfound',
@@ -492,9 +492,9 @@ class CompanySegmentController extends AbstractStandardFormController
             // Loop over the IDs to perform access checks pre-delete
             foreach ($toBeDeleted as $objectId) {
                 $segment = $model->getEntity($objectId);
-                \assert(null === $segment || $segment instanceof CompanySegment);
+                \assert($segment instanceof CompanySegment);
 
-                if (null === $segment) {
+                if (null === $segment->getId()) {
                     $flashes[] = [
                         'type'    => 'error',
                         'msg'     => 'mautic.company_segments.error.notfound',
@@ -626,11 +626,11 @@ class CompanySegmentController extends AbstractStandardFormController
         $model = $this->getModel(CompanySegmentModel::class);
         \assert($model instanceof CompanySegmentModel);
         $segment = $model->getEntity($segmentId);
-        \assert(null === $segment || $segment instanceof CompanySegment);
+        \assert($segment instanceof CompanySegment);
         \assert(null !== $this->security);
 
         // Check if exists
-        if (null === $segment) {
+        if (null === $segment->getId()) {
             throw new EntityNotFoundException(sprintf('Segment with id %d not found.', $segmentId));
         }
 
