@@ -62,6 +62,7 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         self::assertIsArray($data['companysegment']);
         self::assertSame('Segment test', $data['companysegment']['name']);
         $companySegment = $this->em->getRepository(CompanySegment::class)->find($data['companysegment']['id']);
+        self::assertNotNull($companySegment);
         static::assertInstanceof(CompanySegment::class, $companySegment);
         self::assertSame('Segment test', $companySegment->getName());
     }
@@ -83,8 +84,7 @@ class CompanySegmentApiControllerTest extends MauticMysqlTestCase
         self::assertSame('Segment test edited', $data['companysegment']['name']);
         $companySegment = $this->em->getRepository(CompanySegment::class)->find($data['companysegment']['id']);
         self::assertNotNull($companySegment);
-        static::assertInstanceof(CompanySegment::class, $companySegment);
-
+        self::assertInstanceof('\MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment', $companySegment);
         self::assertSame('Segment test edited', $companySegment->getName());
     }
 
