@@ -770,7 +770,7 @@ class CompanySegmentModel extends FormModel
     }
 
     /**
-     * @param int|null $id
+     * @param mixed $id
      */
     public function getEntity($id=null): ?object
     {
