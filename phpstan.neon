@@ -48,7 +48,7 @@ parameters:
           count: 2
           path: Tests/Functional/Security/Permissions/CompanySegmentsPermissionsTest.php
           reportUnmatched: false
-        - message: '#Parameter \#1 $id \(int\|null\) of method MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Model\\CompanySegmentModel::getEntity\(\) should be contravariant with parameter \$id \(mixed\) of method #'
+        - message: '#Parameter \#1 \$id \(int\|null\) of method MauticPlugin\\LeuchtfeuerCompanySegmentsBundle\\Model\\CompanySegmentModel::getEntity\(\) should be contravariant with parameter \$id \(mixed\) of method #'
           count: 1
           path: Model/CompanySegmentModel.php
           reportUnmatched: false

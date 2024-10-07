@@ -34,7 +34,6 @@ class CircularDependencyValidator extends ConstraintValidator
         }
 
         $dependentSegmentIds = $this->flatten(array_map(function ($id): array {
-            $id     = (int) $id;
             $entity = $this->model->getEntity($id);
             assert($entity instanceof CompanySegment);
 
