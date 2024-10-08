@@ -257,27 +257,79 @@ class ReportSubscriberTest extends TestCase
 
     public function testGetCompanySegmentConditionWhenOperatorEqualsIn(): void
     {
-        $this->queryBuilderMock->expects(self::once())
-            ->method('andWhere');
+        $filterSubQueryResult = 'filter sub query';
+        $filterResult         = 'filter result';
+        $subQueryResult       = 'sub query';
+        $filterValue          = '3';
 
-        $this->exprMock->expects(self::exactly(2))->method('in')->willReturn('a');
+        $this->queryBuilderMock->expects(self::once())
+            ->method('andWhere')
+            ->with($filterSubQueryResult);
+        $this->queryBuilderMock->expects(self::once())
+            ->method('getSQL')
+            ->willReturn($subQueryResult);
+
+        $this->exprMock
+            ->expects(self::exactly(2))
+            ->method('in')
+            ->willReturnCallback(static function (string $field, string $value) use ($subQueryResult, $filterValue, $filterResult, $filterSubQueryResult): string {
+                if ($field === ReportSubscriber::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id') {
+                    self::assertSame($filterValue, $value);
+
+                    return $filterSubQueryResult;
+                }
+
+                if ($field === ReportSubscriber::COMPANIES_PREFIX.'.id') {
+                    self::assertSame('('.$subQueryResult.')', $value);
+
+                    return $filterResult;
+                }
+
+                self::fail('Unknown field: '.$field);
+            });
 
         $filter = [
             'column'    => 'csx.segment_id',
             'glue'      => 'and',
             'dynamic'   => null,
             'condition' => 'in',
-            'value'     => '3',
+            'value'     => $filterValue,
         ];
 
-        $this->reportSubscriber->getCompanySegmentCondition($filter);
+        self::assertSame($filterResult, $this->reportSubscriber->getCompanySegmentCondition($filter));
     }
 
     public function testGetCompanySegmentConditionWhenOperatorEqualsNotIn(): void
     {
-        $this->queryBuilderMock->expects(self::once())->method('andWhere');
-        $this->exprMock->expects(self::once())->method('in')->willReturn('a');
-        $this->exprMock->expects(self::once())->method('notIn')->willReturn('a');
+        $filterSubQueryResult = 'filter sub query';
+        $filterResult         = 'filter result';
+        $subQueryResult       = 'sub query';
+        $filterValue          = '3';
+
+        $this->queryBuilderMock->expects(self::once())
+            ->method('andWhere')
+            ->with($filterSubQueryResult);
+        $this->queryBuilderMock->expects(self::once())
+            ->method('getSQL')
+            ->willReturn($subQueryResult);
+
+        $this->exprMock
+            ->expects(self::once())
+            ->method('in')
+            ->willReturnCallback(static function (string $field, string $value) use ($filterValue, $filterSubQueryResult): string {
+                self::assertSame($filterValue, $value);
+
+                return $filterSubQueryResult;
+            });
+
+        $this->exprMock
+            ->expects(self::once())
+            ->method('notIn')
+            ->willReturnCallback(static function (string $field, string $value) use ($subQueryResult, $filterResult): string {
+                self::assertSame('('.$subQueryResult.')', $value);
+
+                return $filterResult;
+            });
 
         $filter = [
             'column'    => 'csx.segment_id',
@@ -287,36 +339,60 @@ class ReportSubscriberTest extends TestCase
             'value'     => '3',
         ];
 
-        $this->reportSubscriber->getCompanySegmentCondition($filter);
+        self::assertSame($filterResult, $this->reportSubscriber->getCompanySegmentCondition($filter));
     }
 
     public function testGetCompanySegmentConditionWhenOperatorEqualsEmpty(): void
     {
-        $this->exprMock->expects(self::once())->method('notIn')->willReturn('a');
+        $filterResult         = 'filter result';
+        $subQueryResult       = 'sub query';
+        $this->queryBuilderMock->expects(self::once())
+            ->method('getSQL')
+            ->willReturn($subQueryResult);
+
+        $this->exprMock
+            ->expects(self::once())
+            ->method('notIn')
+            ->willReturnCallback(static function (string $field, string $value) use ($subQueryResult, $filterResult): string {
+                self::assertSame('('.$subQueryResult.')', $value);
+
+                return $filterResult;
+            });
 
         $filter = [
             'column'    => 'csx.segment_id',
             'glue'      => 'and',
             'dynamic'   => null,
             'condition' => 'empty',
-            'value'     => '3',
         ];
 
-        $this->reportSubscriber->getCompanySegmentCondition($filter);
+        self::assertSame($filterResult, $this->reportSubscriber->getCompanySegmentCondition($filter));
     }
 
     public function testGetCompanySegmentConditionWhenOperatorEqualsNotEmpty(): void
     {
-        $this->exprMock->expects(self::once())->method('in')->willReturn('a');
+        $filterResult         = 'filter result';
+        $subQueryResult       = 'sub query';
+        $this->queryBuilderMock->expects(self::once())
+            ->method('getSQL')
+            ->willReturn($subQueryResult);
+
+        $this->exprMock
+            ->expects(self::once())
+            ->method('in')
+            ->willReturnCallback(static function (string $field, string $value) use ($subQueryResult, $filterResult): string {
+                self::assertSame('('.$subQueryResult.')', $value);
+
+                return $filterResult;
+            });
 
         $filter = [
             'column'    => 'csx.segment_id',
             'glue'      => 'and',
             'dynamic'   => null,
             'condition' => 'notEmpty',
-            'value'     => '3',
         ];
 
-        $this->reportSubscriber->getCompanySegmentCondition($filter);
+        self::assertSame($filterResult, $this->reportSubscriber->getCompanySegmentCondition($filter));
     }
 }
