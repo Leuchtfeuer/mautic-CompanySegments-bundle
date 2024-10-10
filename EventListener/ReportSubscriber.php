@@ -4,6 +4,7 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\LeadBundle\Model\CompanyReportData;
 use Mautic\ReportBundle\Event\ReportBuilderEvent;
@@ -106,6 +107,9 @@ class ReportSubscriber implements EventSubscriberInterface
         return $segmentList;
     }
 
+    /**
+     * Most of the code in this function was duplicated from the MauticReportBuilder as this option was preferred to making a patch.
+     */
     public function onReportGenerate(ReportGeneratorEvent $event): void
     {
         if (!$event->checkContext([self::CONTEXT_COMPANY_SEGMENTS])) {
@@ -249,28 +253,52 @@ class ReportSubscriber implements EventSubscriberInterface
      */
     public function getCompanySegmentCondition(array $filter): ?string
     {
-        if (self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id' !== $filter['column']) {
+        if (!$this->checkIfCompanySegmentFilter($filter)) {
             return null;
         }
 
-        $segmentSubQuery = $this->db->createQueryBuilder();
-        $segmentSubQuery->select('DISTINCT '.self::COMPANY_SEGMENTS_XREF_PREFIX.'.company_id')
-            ->from(MAUTIC_TABLE_PREFIX.self::COMPANY_SEGMENTS_XREF_TABLE, self::COMPANY_SEGMENTS_XREF_PREFIX);
+        $segmentSubQuery = $this->prepareSegmentSubQuery();
 
+        return $this->finalizeSubQuery($segmentSubQuery, $filter);
+    }
+
+    /**
+     * @param array<string, string|null> $filter
+     */
+    private function checkIfCompanySegmentFilter(array $filter): bool
+    {
+        return self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id' === $filter['column'];
+    }
+
+    private function prepareSegmentSubQuery(): QueryBuilder
+    {
+        return $this->db->createQueryBuilder()->select('DISTINCT '.self::COMPANY_SEGMENTS_XREF_PREFIX.'.company_id')
+            ->from(MAUTIC_TABLE_PREFIX.self::COMPANY_SEGMENTS_XREF_TABLE, self::COMPANY_SEGMENTS_XREF_PREFIX);
+    }
+
+    /**
+     * @param array<string, string|null> $filter
+     */
+    private function finalizeSubQuery(QueryBuilder $segmentSubQuery, array $filter): string
+    {
         if (in_array($filter['condition'], ['in', 'notIn'], true) && !is_null($filter['value'])) {
             $segmentSubQuery->andWhere($segmentSubQuery->expr()->in(self::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id', $filter['value']));
         }
 
+        $subQuery = $segmentSubQuery->getSQL();
+
         if (in_array($filter['condition'], ['in', 'notEmpty'], true)) {
-            return $segmentSubQuery->expr()->in(self::COMPANIES_PREFIX.'.id', $segmentSubQuery->getSQL());
+            return $segmentSubQuery->expr()->in(self::COMPANIES_PREFIX.'.id', '('.$subQuery.')');
         } elseif (in_array($filter['condition'], ['notIn', 'empty'], true)) {
-            return $segmentSubQuery->expr()->notIn(self::COMPANIES_PREFIX.'.id', $segmentSubQuery->getSQL());
+            return $segmentSubQuery->expr()->notIn(self::COMPANIES_PREFIX.'.id', '('.$subQuery.')');
         }
 
-        return null;
+        throw new \InvalidArgumentException('Invalid filter condition');
     }
 
     /**
+     * This code was duplicated from the MauticReportBuilder as this option was preferred to making a patch.
+     *
      * @param array<string, mixed>                 $filter
      * @param array<string, array<string, string>> $filterDefinitions
      */
