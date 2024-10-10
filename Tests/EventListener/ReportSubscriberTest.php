@@ -199,7 +199,7 @@ class ReportSubscriberTest extends TestCase
         self::assertCount(16, $tables['company_segments']['columns']);
         self::assertCount(17, $tables['company_segments']['filters']);
 
-        $segmentFilter = $tables['company_segments']['filters']['csx.segment_id'];
+        $segmentFilter = $tables['company_segments']['filters'][ReportSubscriber::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id'];
         self::assertIsArray($segmentFilter);
         self::assertArrayHasKey('list', $segmentFilter);
         self::assertCount(4, $segmentFilter['list']);
@@ -222,7 +222,7 @@ class ReportSubscriberTest extends TestCase
 
         $this->reportSubscriber->onReportBuilder($this->reportBuilderEventMock);
         $tables        = $this->reportBuilderEventMock->getTables();
-        $segmentFilter = $tables['company_segments']['filters']['csx.segment_id'];
+        $segmentFilter = $tables['company_segments']['filters'][ReportSubscriber::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id'];
 
         self::assertArrayHasKey('company_segments', $tables);
         self::assertCount(16, $tables['company_segments']['columns']);
@@ -289,7 +289,7 @@ class ReportSubscriberTest extends TestCase
             });
 
         $filter = [
-            'column'    => 'csx.segment_id',
+            'column'    => ReportSubscriber::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id',
             'glue'      => 'and',
             'dynamic'   => null,
             'condition' => 'in',
@@ -332,7 +332,7 @@ class ReportSubscriberTest extends TestCase
             });
 
         $filter = [
-            'column'    => 'csx.segment_id',
+            'column'    => ReportSubscriber::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id',
             'glue'      => 'and',
             'dynamic'   => null,
             'condition' => 'notIn',
@@ -360,7 +360,7 @@ class ReportSubscriberTest extends TestCase
             });
 
         $filter = [
-            'column'    => 'csx.segment_id',
+            'column'    => ReportSubscriber::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id',
             'glue'      => 'and',
             'dynamic'   => null,
             'condition' => 'empty',
@@ -387,7 +387,7 @@ class ReportSubscriberTest extends TestCase
             });
 
         $filter = [
-            'column'    => 'csx.segment_id',
+            'column'    => ReportSubscriber::COMPANY_SEGMENTS_XREF_PREFIX.'.segment_id',
             'glue'      => 'and',
             'dynamic'   => null,
             'condition' => 'notEmpty',
