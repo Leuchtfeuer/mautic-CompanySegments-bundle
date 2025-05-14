@@ -541,6 +541,10 @@ class TypeOperatorSubscriberTest extends TestCase
                 ['onGenerateSegmentFiltersAddStaticFields', 0],
                 ['onGenerateSegmentFiltersAddCustomFields', 0],
             ],
+            LeadEvents::LIST_FILTERS_CHOICES_ON_GENERATE => [
+                ['updateGenerateSegmentFiltersAddStaticFieldsToLeadSegment', 0],
+                ['updateGenerateSegmentFiltersAddCustomFieldsToLeadSegment', 0],
+            ],
         ], TypeOperatorSubscriber::getSubscribedEvents());
     }
 }
