@@ -254,14 +254,14 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
 
     /**
      * @param array <string, array<string, array<string, mixed>>> $choices
-     * @param array <int,string> $groupAllow
+     * @param array <int,string>                                  $groupAllow
      *
      * @return array <string, array<string, array<string, mixed>>>
      */
     private function setIncludeExcludeOperatorsToTextFilters(array $choices, array $groupAllow =[]): array
     {
         foreach ($choices as $group => $groups) {
-            if ($groupAllow !== [] && !in_array($group, $groupAllow, true)) {
+            if ([] !== $groupAllow && !in_array($group, $groupAllow, true)) {
                 continue;
             }
             if (!is_array($groups)) {

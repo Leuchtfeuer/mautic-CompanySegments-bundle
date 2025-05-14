@@ -39,9 +39,8 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
 
         $companySegmentOne    = $this->addCompanySegment('Test Segment 1', 'test_segment');
         $companiesSegmentsOne = $this->addCompanyToSegments($companyGlobo, $companySegmentOne);
-        $filters   = [
-            'filters' =>
-            [
+        $filters              = [
+            'filters' => [
                 'glue'       => 'and',
                 'operator'   => 'in',
                 'properties' => [
@@ -50,7 +49,7 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
                 'field'  => 'company_segments',
                 'type'   => 'company_segments',
                 'object' => 'company_segments',
-            ]
+            ],
         ];
         $companySegmentTwo             = $this->addCompanySegment('Test Segment 2', 'test_segment2', true, $filters);
         $resultCompaniesSegmentsBefore = $this->em->getRepository(CompaniesSegments::class)->findAll();
@@ -101,9 +100,8 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
 
         $companySegmentOne    = $this->addCompanySegment('Test Company Segment 1', 'test_comp_segment');
         $companiesSegmentsOne = $this->addCompanyToSegments($companyGlobo, $companySegmentOne);
-        $filters  = [
-            'filters' =>
-            [
+        $filters              = [
+            'filters' => [
                 'glue'       => 'and',
                 'operator'   => 'in',
                 'properties' => [
@@ -112,7 +110,7 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
                 'field'  => 'company_segments',
                 'type'   => 'company_segments',
                 'object' => 'company_segments',
-            ]
+            ],
         ];
         $companySegmentTwo             = $this->addCompanySegment('Test Company Segment 2', 'test_comp_segment2', true, $filters);
         $segmentOne                    = $this->addSegment('Test Segment 1', 'test_segment');
@@ -176,20 +174,13 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         self::assertCount(5, $leadListTotalAfter);
     }
 
-    /**
-     * @param string $name
-     * @param string $email
-     * @param Company|null $companyName
-     *
-     * @return Lead
-     */
-    private function createLead(string $name, string $email, Company $companyName = null): Lead
+    private function createLead(string $name, string $email, ?Company $companyName = null): Lead
     {
         $lead = new Lead();
         $lead->setFirstname($name);
         $lead->setLastname($name.' lastname');
         $lead->setEmail($email);
-        if ($companyName !== null) {
+        if (null !== $companyName) {
             $lead->setCompany($companyName);
         }
         $this->em->persist($lead);
@@ -199,12 +190,7 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
     }
 
     /**
-     * @param string $name
-     * @param string $alias
-     * @param bool   $isPublished
-     * @param array<mixed>  $filters
-     *
-     * @return LeadList
+     * @param array<mixed> $filters
      */
     private function addSegment(string $name, string $alias, bool $isPublished = true, array $filters = []): LeadList
     {
@@ -213,7 +199,7 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         $leadList->setName($name);
         $leadList->setAlias($alias);
         $leadList->setIsPublished($isPublished);
-        if ($filters !== []) {
+        if ([] !== $filters) {
             $leadList->setFilters($filters);
         }
         $this->em->persist($leadList);
@@ -236,12 +222,7 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
     }
 
     /**
-     * @param string $name
-     * @param string $alias
-     * @param bool   $isPublished
-     * @param array<array<mixed>>  $filters
-     *
-     * @return CompanySegment
+     * @param array<array<mixed>> $filters
      */
     private function addCompanySegment(string $name, string $alias, bool $isPublished = true, array $filters = []): CompanySegment
     {
@@ -249,7 +230,7 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         $companySegment->setName($name);
         $companySegment->setAlias($alias);
         $companySegment->setIsPublished($isPublished);
-        if ($filters !== []) {
+        if ([] !== $filters) {
             $companySegment->setFilters($filters);
         }
         $this->em->persist($companySegment);
@@ -257,7 +238,6 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
 
         return $companySegment;
     }
-
 
     private function addCompany(string $name, string $email): Company
     {
