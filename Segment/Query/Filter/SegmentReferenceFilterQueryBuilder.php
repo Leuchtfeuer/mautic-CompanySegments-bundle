@@ -176,7 +176,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
                 true
             );
             $subSegmentCompaniesTableAlias = $segmentQueryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'companies');
-            if(!is_string($subSegmentCompaniesTableAlias)) {
+            if (!is_string($subSegmentCompaniesTableAlias)) {
                 $subSegmentCompaniesTableAlias = $this->generateRandomParameterName();
             }
             \assert(is_string($subSegmentCompaniesTableAlias));
