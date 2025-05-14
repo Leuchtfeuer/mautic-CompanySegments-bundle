@@ -174,8 +174,8 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
                 throw new SegmentNotFoundException(sprintf('Segment %d used in the filter does not exist anymore.', $segmentId));
             }
 
-            $contactSegment = new CompanySegmentAsLeadSegment($companySegment);
-            $filters        = $this->leadSegmentFilterFactory->getSegmentFilters($contactSegment);
+            $contactSegment      = new CompanySegmentAsLeadSegment($companySegment);
+            $filters             = $this->leadSegmentFilterFactory->getSegmentFilters($contactSegment);
             $segmentQueryBuilder = $this->companySegmentQueryBuilder->assembleCompaniesSegmentQueryBuilderLeadSegment(
                 $companySegment,
                 $filters,
