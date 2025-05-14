@@ -14,7 +14,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
 {
-    public function testUpdateCompanySegmentsCommandAddItemInNewSegment()
+    public function testUpdateCompanySegmentsCommandAddItemInNewSegment(): void
     {
         $companyGlobo  = $this->addCompany('Globo', 'contact@globo.com');
         $companySbt    = $this->addCompany('SBT', 'contact@sbt.com');
@@ -39,22 +39,26 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
 
         $companySegmentOne    = $this->addCompanySegment('Test Segment 1', 'test_segment');
         $companiesSegmentsOne = $this->addCompanyToSegments($companyGlobo, $companySegmentOne);
-        $filters['filters']   = [
-            'glue'       => 'and',
-            'operator'   => 'in',
-            'properties' => [
-                'filter' => [$companySegmentOne->getId()],
-            ],
-            'field'  => 'company_segments',
-            'type'   => 'company_segments',
-            'object' => 'company_segments',
+        $filters   = [
+            'filters' =>
+            [
+                'glue'       => 'and',
+                'operator'   => 'in',
+                'properties' => [
+                    'filter' => [$companySegmentOne->getId()],
+                ],
+                'field'  => 'company_segments',
+                'type'   => 'company_segments',
+                'object' => 'company_segments',
+            ]
         ];
         $companySegmentTwo             = $this->addCompanySegment('Test Segment 2', 'test_segment2', true, $filters);
         $resultCompaniesSegmentsBefore = $this->em->getRepository(CompaniesSegments::class)->findAll();
 
-        $this->assertCount(1, $resultCompaniesSegmentsBefore);
+        self::assertCount(1, $resultCompaniesSegmentsBefore);
 
         $kernel        = static::getContainer()->get('kernel');
+        assert($kernel instanceof \Symfony\Component\HttpKernel\KernelInterface);
         $application   = new Application($kernel);
         $application->setAutoExit(false);
         $command       = $application->find('leuchtfeuer:abm:segments-update');
@@ -62,14 +66,14 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         $commandTester->execute([]);
 
         $resultCompaniesSegmentsAfter = $this->em->getRepository(CompaniesSegments::class)->findAll();
-        $this->assertCount(2, $resultCompaniesSegmentsAfter);
+        self::assertCount(2, $resultCompaniesSegmentsAfter);
         assert($resultCompaniesSegmentsAfter[0] instanceof CompaniesSegments);
         assert($resultCompaniesSegmentsAfter[1] instanceof CompaniesSegments);
-        $this->assertEquals($resultCompaniesSegmentsAfter[0]->getCompany()->getId(), $resultCompaniesSegmentsAfter[1]->getCompany()->getId());
-        $this->assertEquals($resultCompaniesSegmentsAfter[1]->getCompanySegment()->getId(), $companySegmentTwo->getId());
+        self::assertEquals($resultCompaniesSegmentsAfter[0]->getCompany()->getId(), $resultCompaniesSegmentsAfter[1]->getCompany()->getId());
+        self::assertEquals($resultCompaniesSegmentsAfter[1]->getCompanySegment()->getId(), $companySegmentTwo->getId());
     }
 
-    public function testUpdateCompanySegmentsCommandRemoveItemInNewSegment()
+    public function testUpdateCompanySegmentsCommandRemoveItemInNewSegment(): void
     {
         $companyGlobo  = $this->addCompany('Globo', 'contact@globo.com');
         $companySbt    = $this->addCompany('SBT', 'contact@sbt.com');
@@ -97,21 +101,24 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
 
         $companySegmentOne    = $this->addCompanySegment('Test Company Segment 1', 'test_comp_segment');
         $companiesSegmentsOne = $this->addCompanyToSegments($companyGlobo, $companySegmentOne);
-        $filters['filters']   = [
-            'glue'       => 'and',
-            'operator'   => 'in',
-            'properties' => [
-                'filter' => [$companySegmentOne->getId()],
-            ],
-            'field'  => 'company_segments',
-            'type'   => 'company_segments',
-            'object' => 'company_segments',
+        $filters  = [
+            'filters' =>
+            [
+                'glue'       => 'and',
+                'operator'   => 'in',
+                'properties' => [
+                    'filter' => [$companySegmentOne->getId()],
+                ],
+                'field'  => 'company_segments',
+                'type'   => 'company_segments',
+                'object' => 'company_segments',
+            ]
         ];
         $companySegmentTwo             = $this->addCompanySegment('Test Company Segment 2', 'test_comp_segment2', true, $filters);
         $segmentOne                    = $this->addSegment('Test Segment 1', 'test_segment');
         $leadSegmentOne                = $this->addLeadSegment($leadOne, $segmentOne);
         $resultCompaniesSegmentsBefore = $this->em->getRepository(CompaniesSegments::class)->findAll();
-        $this->assertCount(1, $resultCompaniesSegmentsBefore);
+        self::assertCount(1, $resultCompaniesSegmentsBefore);
 
         $filters = [
             [
@@ -139,14 +146,15 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         $leadListTwo = $this->addSegment('Test Segment 2', 'test_segment2', true, $filters);
         $leadList    = $this->em->getRepository(LeadList::class)->findAll();
 
-        $this->assertCount(2, $leadList);
+        self::assertCount(2, $leadList);
 
         $leadListModel = static::getContainer()->get('mautic.lead.model.list');
         assert($leadListModel instanceof \Mautic\LeadBundle\Model\ListModel);
         $leadListTotalBefore = $leadListModel->getListLeadRepository()->findAll();
-        $this->assertCount(1, $leadListTotalBefore);
+        self::assertCount(1, $leadListTotalBefore);
 
         $kernel        = static::getContainer()->get('kernel');
+        assert($kernel instanceof \Symfony\Component\HttpKernel\KernelInterface);
         $application   = new Application($kernel);
         $application->setAutoExit(false);
         $command       = $application->find('leuchtfeuer:abm:segments-update');
@@ -154,9 +162,10 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         $commandTester->execute([]);
 
         $resultCompaniesSegmentsAfter = $this->em->getRepository(CompaniesSegments::class)->findAll();
-        $this->assertCount(2, $resultCompaniesSegmentsAfter);
+        self::assertCount(2, $resultCompaniesSegmentsAfter);
 
         $kernel        = static::getContainer()->get('kernel');
+        assert($kernel instanceof \Symfony\Component\HttpKernel\KernelInterface);
         $application   = new Application($kernel);
         $application->setAutoExit(false);
         $command       = $application->find('mautic:segments:update');
@@ -164,16 +173,23 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         $commandTester->execute([]);
 
         $leadListTotalAfter = $leadListModel->getListLeadRepository()->findAll();
-        $this->assertCount(5, $leadListTotalAfter);
+        self::assertCount(5, $leadListTotalAfter);
     }
 
-    private function createLead($name, $email, $companyName = null): Lead
+    /**
+     * @param string $name
+     * @param string $email
+     * @param Company|null $companyName
+     *
+     * @return Lead
+     */
+    private function createLead(string $name, string $email, Company $companyName = null): Lead
     {
         $lead = new Lead();
-        $lead->setFirstName($name);
-        $lead->setLastName($name.' lastname');
+        $lead->setFirstname($name);
+        $lead->setLastname($name.' lastname');
         $lead->setEmail($email);
-        if ($companyName) {
+        if ($companyName !== null) {
             $lead->setCompany($companyName);
         }
         $this->em->persist($lead);
@@ -182,6 +198,14 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         return $lead;
     }
 
+    /**
+     * @param string $name
+     * @param string $alias
+     * @param bool   $isPublished
+     * @param array<mixed>  $filters
+     *
+     * @return LeadList
+     */
     private function addSegment(string $name, string $alias, bool $isPublished = true, array $filters = []): LeadList
     {
         $leadList = new LeadList();
@@ -189,7 +213,7 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         $leadList->setName($name);
         $leadList->setAlias($alias);
         $leadList->setIsPublished($isPublished);
-        if (!empty($filters)) {
+        if ($filters !== []) {
             $leadList->setFilters($filters);
         }
         $this->em->persist($leadList);
@@ -211,30 +235,31 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         return $segmentContact;
     }
 
-    private function addLeadToLeadSegment(Lead $lead, LeadList $leadList): void
-    {
-        $leadListModel = static::getContainer()->get('mautic.leadlist.model.leadlist');
-        assert($leadListModel instanceof \Mautic\LeadBundle\Model\ListModel);
-        $leadListModel->addLead($lead);
-    }
-
+    /**
+     * @param string $name
+     * @param string $alias
+     * @param bool   $isPublished
+     * @param array<array<mixed>>  $filters
+     *
+     * @return CompanySegment
+     */
     private function addCompanySegment(string $name, string $alias, bool $isPublished = true, array $filters = []): CompanySegment
     {
         $companySegment = new CompanySegment();
         $companySegment->setName($name);
         $companySegment->setAlias($alias);
         $companySegment->setIsPublished($isPublished);
-        if (!empty($filters)) {
+        if ($filters !== []) {
             $companySegment->setFilters($filters);
         }
-        //        $companySegment->setFilters($filters);
         $this->em->persist($companySegment);
         $this->em->flush();
 
         return $companySegment;
     }
 
-    private function addCompany($name, $email): Company
+
+    private function addCompany(string $name, string $email): Company
     {
         $company = new Company();
         $company->setName($name);

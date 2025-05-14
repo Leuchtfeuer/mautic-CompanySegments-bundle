@@ -243,14 +243,28 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
     private function setIncludeExcludeOperatorsToTextFiltersToLeadSegment(LeadListFiltersChoicesEvent $event): void
     {
         $choices = $event->getChoices();
+        // Ensure $choices matches the expected structure
+        if (!is_array($choices)) {
+            $choices = [];
+        }
         $choices = $this->setIncludeExcludeOperatorsToTextFilters($choices, ['company']);
+        // @phpstan-ignore-next-line
         $event->setChoices($choices);
     }
 
+    /**
+     * @param array <string, array<string, array<string, mixed>>> $choices
+     * @param array <int,string> $groupAllow
+     *
+     * @return array <string, array<string, array<string, mixed>>>
+     */
     private function setIncludeExcludeOperatorsToTextFilters(array $choices, array $groupAllow =[]): array
     {
         foreach ($choices as $group => $groups) {
-            if (!empty($groupAllow) && !in_array($group, $groupAllow, true)) {
+            if ($groupAllow !== [] && !in_array($group, $groupAllow, true)) {
+                continue;
+            }
+            if (!is_array($groups)) {
                 continue;
             }
             foreach ($groups as $alias => $choice) {
@@ -259,6 +273,7 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
                     $type = $choice['properties']['type'] ?? null;
                 }
                 if ('text' === $type) {
+                    assert(is_array($choices[$group]));
                     if (!is_array($choices[$group][$alias])) {
                         $choices[$group][$alias] = [];
                     }

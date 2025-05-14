@@ -140,24 +140,18 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
     {
         $leadAlias               = $queryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'leads');
         $companiesLeadTableAlias = $this->generateRandomParameterName();
+        assert(is_string($leadAlias));
         $queryBuilder->leftJoin(
             $leadAlias,
             MAUTIC_TABLE_PREFIX.'companies_leads',
             $companiesLeadTableAlias,
             $companiesLeadTableAlias.'.lead_id = '.$leadAlias.'.id AND '.$companiesLeadTableAlias.'.is_primary = 1'
         );
-        $companiesTableAlias = $queryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'companies');
-        if (empty($companiesTableAlias)) {
-            $companiesTableAlias = 'bbbboo';
-        }
-
-        \assert(is_string($companiesTableAlias));
 
         $segmentIds = $filter->getParameterValue();
-        if (empty($segmentIds)) {
+        if (!is_array($segmentIds) && !is_numeric($segmentIds)) {
             return $queryBuilder;
         }
-        \assert(is_array($segmentIds) || is_numeric($segmentIds));
 
         if (!is_array($segmentIds)) {
             $segmentIds = [(int) $segmentIds];
