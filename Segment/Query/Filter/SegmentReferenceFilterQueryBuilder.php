@@ -56,7 +56,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
         }
 
         $from = $queryBuilder->getQueryPart('from');
-
+        assert(is_array($from));
         if (
             array_key_exists(0, $from)
             && array_key_exists('table', $from[0])
