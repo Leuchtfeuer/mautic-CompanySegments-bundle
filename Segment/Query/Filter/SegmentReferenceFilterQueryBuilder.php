@@ -57,7 +57,11 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
 
         $from = $queryBuilder->getQueryPart('from');
 
-        if ($from[0]['table'] === MAUTIC_TABLE_PREFIX.'leads') {
+        if (
+            array_key_exists(0, $from)
+            && array_key_exists('table', $from[0])
+            && $from[0]['table'] === MAUTIC_TABLE_PREFIX.'leads'
+        ) {
             return $this->applyQueryToLeadSegment($queryBuilder, $filter);
         }
 
