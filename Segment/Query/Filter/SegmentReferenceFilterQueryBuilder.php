@@ -156,7 +156,6 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
         if (OperatorOptions::EMPTY === $filter->getOperator() || 'notEmpty' === $filter->getOperator()) {
             $segmentIds = $this->entityManager->getRepository(CompanySegment::class)->findAll();
             $segmentIds = array_map(static fn (CompanySegment $segment) => $segment->getId(), $segmentIds);
-            //            dd($segmentIds);
         }
 
         if (!is_array($segmentIds)) {
@@ -190,7 +189,6 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
 
             // If the segment contains no filters; it means its for manually subscribed only
             if (count($filters) > 0) {
-                //                dump($companySegment->getId());
                 $segmentQueryBuilder = $this->companySegmentQueryBuilder->addManuallyUnsubscribedQuery($segmentQueryBuilder, $companySegment);
             }
 
