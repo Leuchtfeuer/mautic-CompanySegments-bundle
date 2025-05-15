@@ -10,6 +10,7 @@ use Mautic\LeadBundle\Event\SegmentDictionaryGenerationEvent;
 use Mautic\LeadBundle\LeadEvents;
 use Mautic\LeadBundle\Segment\ContactSegmentFilter;
 use Mautic\LeadBundle\Segment\ContactSegmentFilterFactory;
+use Mautic\LeadBundle\Segment\OperatorOptions;
 use Mautic\LeadBundle\Segment\Query\Filter\BaseFilterQueryBuilder;
 use Mautic\LeadBundle\Segment\Query\QueryBuilder;
 use Mautic\LeadBundle\Segment\RandomParameterName;
@@ -54,7 +55,9 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
             throw new \RuntimeException('The supported field is '.CompanySegmentModel::PROPERTIES_FIELD);
         }
 
-        if (!array_key_exists(MAUTIC_TABLE_PREFIX.'companies', $queryBuilder->getTableAliases())) {
+        $from = $queryBuilder->getQueryPart('from');
+
+        if ($from[0]['table'] === MAUTIC_TABLE_PREFIX.'leads') {
             return $this->applyQueryToLeadSegment($queryBuilder, $filter);
         }
 
@@ -66,6 +69,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
         $companiesTableAlias = $queryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'companies');
         \assert(is_string($companiesTableAlias));
         $segmentIds = $filter->getParameterValue();
+
         \assert(is_array($segmentIds) || is_numeric($segmentIds));
 
         if (!is_array($segmentIds)) {
@@ -141,7 +145,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
         $leadAlias               = $queryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'leads');
         $companiesLeadTableAlias = $this->generateRandomParameterName();
         assert(is_string($leadAlias));
-        $queryBuilder->leftJoin(
+        $queryBuilder->join(
             $leadAlias,
             MAUTIC_TABLE_PREFIX.'companies_leads',
             $companiesLeadTableAlias,
@@ -149,8 +153,10 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
         );
 
         $segmentIds = $filter->getParameterValue();
-        if (!is_array($segmentIds) && !is_numeric($segmentIds)) {
-            return $queryBuilder;
+        if (OperatorOptions::EMPTY === $filter->getOperator() || 'notEmpty' === $filter->getOperator()) {
+            $segmentIds = $this->entityManager->getRepository(CompanySegment::class)->findAll();
+            $segmentIds = array_map(static fn (CompanySegment $segment) => $segment->getId(), $segmentIds);
+            //            dd($segmentIds);
         }
 
         if (!is_array($segmentIds)) {
@@ -159,7 +165,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
 
         $orLogic           = [];
         foreach ($segmentIds as $segmentId) {
-            $exclusion = in_array($filter->getOperator(), ['notExists', 'notIn'], true);
+            $exclusion = in_array($filter->getOperator(), ['notExists', 'notIn', 'empty'], true);
 
             /** @var CompanySegment|null $companySegment */
             $companySegment    = $this->entityManager->getRepository(CompanySegment::class)->find($segmentId);

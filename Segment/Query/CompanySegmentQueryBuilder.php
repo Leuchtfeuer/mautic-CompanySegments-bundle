@@ -104,17 +104,17 @@ class CompanySegmentQueryBuilder
         $companyLeadsTableAlias   = $this->generateRandomParameterName();
         $companySegmentTableAlias = $this->generateRandomParameterName();
         $queryBuilder->select($leadTableAlias.'.id')->from(MAUTIC_TABLE_PREFIX.'leads', $leadTableAlias)
-            ->leftJoin(
+            ->join(
                 $leadTableAlias,
                 MAUTIC_TABLE_PREFIX.'companies_leads',
                 $companyLeadsTableAlias,
                 $companyLeadsTableAlias.'.lead_id = '.$leadTableAlias.'.id and '.$companyLeadsTableAlias.'.is_primary = 1'
-            )->leftJoin(
+            )->join(
                 $companyLeadsTableAlias,
                 MAUTIC_TABLE_PREFIX.'companies',
                 $companyTableAlias,
                 $companyTableAlias.'.id = '.$companyLeadsTableAlias.'.company_id'
-            )->leftJoin(
+            )->join(
                 $companyTableAlias,
                 MAUTIC_TABLE_PREFIX.'companies_segments',
                 $companySegmentTableAlias,
