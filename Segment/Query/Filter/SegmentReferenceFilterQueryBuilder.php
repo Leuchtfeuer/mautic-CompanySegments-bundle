@@ -155,7 +155,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
         $segmentIds = $filter->getParameterValue();
         if (OperatorOptions::EMPTY === $filter->getOperator() || 'notEmpty' === $filter->getOperator()) {
             $segmentIds = $this->entityManager->getRepository(CompanySegment::class)->findAll();
-            $segmentIds = array_map(static fn (CompanySegment $segment) => $segment->getId(), $segmentIds);
+            $segmentIds = array_map(static fn (CompanySegment $segment): ?int => $segment->getId(), $segmentIds);
         }
 
         if (!is_array($segmentIds)) {

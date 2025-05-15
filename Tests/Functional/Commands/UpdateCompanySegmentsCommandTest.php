@@ -383,19 +383,6 @@ class UpdateCompanySegmentsCommandTest extends MauticMysqlTestCase
         return $leadList;
     }
 
-    private function addLeadSegment(Lead $contact, LeadList $segment): ListLead
-    {
-        // Add contact to segment:
-        $segmentContact = new ListLead();
-        $segmentContact->setLead($contact);
-        $segmentContact->setList($segment);
-        $segmentContact->setDateAdded(new \DateTime());
-        $this->em->persist($segmentContact);
-        $this->em->flush();
-
-        return $segmentContact;
-    }
-
     /**
      * @param array<array<mixed>> $filters
      */
