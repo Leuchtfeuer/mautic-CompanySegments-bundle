@@ -162,6 +162,8 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
             $segmentIds = array_map(static fn (CompanySegment $segment): ?int => $segment->getId(), $segmentIds);
         }
 
+        \assert(is_array($segmentIds) || is_numeric($segmentIds));
+
         if (!is_array($segmentIds)) {
             $segmentIds = [(int) $segmentIds];
         }
