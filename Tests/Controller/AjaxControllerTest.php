@@ -107,7 +107,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         self::assertStringContainsString('No Companies', $rows->eq(2)->filter('td')->eq(2)->text());
 
         // test ajax
-        $this->checkGetCompaniesCountAjaxRequest($companySegmentManual, 'No Companies', 0);
+        $this->checkGetCompaniesCountAjaxRequest($companySegmentManual, 'View 2 Companies', 2);
         $this->checkGetCompaniesCountAjaxRequest($companySegmentFiltered, 'No Companies', 0);
         $this->checkGetCompaniesCountAjaxRequest($companySegmentDependent, 'No Companies', 0);
 
@@ -147,7 +147,6 @@ class AjaxControllerTest extends MauticMysqlTestCase
         self::assertIsArray($content);
         self::assertArrayHasKey('html', $content);
         self::assertArrayHasKey('companyCount', $content);
-
         self::assertSame($html, $content['html']);
         self::assertSame($companiesCount, $content['companyCount']);
     }
