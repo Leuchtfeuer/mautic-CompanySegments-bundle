@@ -208,12 +208,28 @@ class CompanySegmentModel extends FormModel
     public function getSegmentCompanyCountFromCache(array $companyIds): array
     {
         $companyCounts = [];
-
         foreach ($companyIds as $segmentId) {
             $companyCounts[$segmentId] = $this->segmentCountCacheHelper->getSegmentCompanyCount($segmentId);
         }
 
         return $companyCounts;
+    }
+
+    public function hasSegmentCompanyCountInCache(int $segmentId): bool
+    {
+        return $this->segmentCountCacheHelper->hasSegmentCompanyCount($segmentId);
+    }
+
+    /**
+     * @param array<int> $segmentIds
+     */
+    public function setSegmentCompanyCountInCache(array $segmentIds): void
+    {
+        foreach ($segmentIds as $segmentId) {
+            $companySegment =  $this->getRepository()->find($segmentId);
+            $count = $companySegment->getCompaniesSegments()->count();
+            $this->segmentCountCacheHelper->setSegmentCompanyCount($segmentId, $count);
+        }
     }
 
     /**
