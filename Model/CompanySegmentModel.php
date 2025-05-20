@@ -227,7 +227,10 @@ class CompanySegmentModel extends FormModel
     {
         foreach ($segmentIds as $segmentId) {
             $companySegment =  $this->getRepository()->find($segmentId);
-            $count          = $companySegment->getCompaniesSegments()->count();
+            $count = 0;
+            if (null !== $companySegment->getCompaniesSegments()) {
+                $count = $companySegment->getCompaniesSegments()->count();
+            }
             if (null === $count) {
                 $count = 0;
             }
