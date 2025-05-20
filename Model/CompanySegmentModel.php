@@ -227,7 +227,7 @@ class CompanySegmentModel extends FormModel
     {
         foreach ($segmentIds as $segmentId) {
             $companySegment =  $this->getRepository()->find($segmentId);
-            $count = $companySegment->getCompaniesSegments()->count();
+            $count          = $companySegment->getCompaniesSegments()->count();
             $this->segmentCountCacheHelper->setSegmentCompanyCount($segmentId, $count);
         }
     }

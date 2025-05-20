@@ -155,11 +155,11 @@ class AjaxControllerTest extends MauticMysqlTestCase
     public function testCheckIfCompanyCountRebuildAfterNoCache(): void
     {
         $this->loadFixtures([LoadCompanyData::class, LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class]);
-        $companySegmentManual = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_NO_FILTERS);
+        $companySegmentManual        = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_NO_FILTERS);
         $companiesSegmentsRepository = static::getContainer()->get(CompaniesSegmentsRepository::class);
         \assert($companiesSegmentsRepository instanceof CompaniesSegmentsRepository);
 
-        $company = $this->getCompany('company-1');
+        $company           = $this->getCompany('company-1');
         $companiesSegments = new CompaniesSegments();
         $companiesSegments->setCompanySegment($companySegmentManual);
         $companiesSegments->setCompany($company);
@@ -168,7 +168,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         $companiesSegmentsRepository->saveEntity($companiesSegments);
         $companySegmentManual->addCompaniesSegment($companiesSegments);
 
-        $company2 = $this->getCompany('company-2');
+        $company2          = $this->getCompany('company-2');
         $companiesSegments = new CompaniesSegments();
         $companiesSegments->setCompanySegment($companySegmentManual);
         $companiesSegments->setCompany($company2);
@@ -214,6 +214,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
 
         $segmentCountHelper = self::getContainer()->get(SegmentCountCacheHelper::class);
         \assert($segmentCountHelper instanceof SegmentCountCacheHelper);
+        self::assertIsInt($companiesSegments->getCompanySegment()->getId());
         $hasCache = $companySegmentModel->hasSegmentCompanyCountInCache($companiesSegments->getCompanySegment()->getId());
         self::assertTrue($hasCache, 'Check that the cache is not empty');
         $segmentCountHelper->invalidateSegmentCompanyCount($companiesSegments->getCompanySegment()->getId());
@@ -221,5 +222,4 @@ class AjaxControllerTest extends MauticMysqlTestCase
         self::assertFalse($hasCache, 'Check that the cache is empty');
         $this->checkGetCompaniesCountAjaxRequest($companySegmentManual, 'View 2 Companies', 2);
     }
-
 }
