@@ -64,22 +64,24 @@ class CampaignSubscriber implements EventSubscriberInterface
         $addTo      = $event->getConfig()['addToLists'];
         $removeFrom = $event->getConfig()['removeFromLists'];
 
-
         $lead              = $event->getLead();
 
         $primaryCompany    = $lead->getPrimaryCompany();
 
-        if ([] !== $addTo && array_key_exists('id',$primaryCompany) && !empty($primaryCompany['id'])) {
+        if ([] !== $addTo && is_array($primaryCompany) && array_key_exists('id', $primaryCompany) && '' !== $primaryCompany['id'] && null !== $primaryCompany['id']) {
             $somethingHappened = $this->addRemoveCompanyToSegment($addTo, (int) $primaryCompany['id'], true);
         }
 
-        if ([] !== $removeFrom && array_key_exists('id',$primaryCompany) &&  !empty($primaryCompany['id'])) {
+        if ([] !== $removeFrom && is_array($primaryCompany) && array_key_exists('id', $primaryCompany) && '' !== $primaryCompany['id'] && null !== $primaryCompany['id']) {
             $somethingHappened = $this->addRemoveCompanyToSegment($removeFrom, (int) $primaryCompany['id'], false);
         }
 
         return $event->setResult($somethingHappened);
     }
 
+    /**
+     * @param array<int> $companySegmentIds
+     */
     private function addRemoveCompanyToSegment(array $companySegmentIds, int $idPrimaryCompany, bool $isToAdd = true): bool
     {
         $somethingHappened = false;
@@ -101,13 +103,9 @@ class CampaignSubscriber implements EventSubscriberInterface
 
     public function onCampaignConditionTriggerAction(CampaignExecutionEvent $event)
     {
-        if (!$this->config->isPublished()) {
-            //            dump('aaa');
-            return;
-        }
-
-        if (!$event->checkContext(self::MANAGE_COMPANY_SEGMENT_CONDITION)) {
-            return;
+        $somethingHappened = false;
+        if (!$this->config->isPublished() || !$event->checkContext(self::MANAGE_COMPANY_SEGMENT_CONDITION)) {
+            return $event->setResult($somethingHappened);
         }
 
         $companySegmentIds = $event->getConfig()['companySegments'];
@@ -115,8 +113,8 @@ class CampaignSubscriber implements EventSubscriberInterface
         $lead           = $event->getLead();
         $primaryCompany = $lead->getPrimaryCompany();
 
-        if (empty($lead) || empty($lead->getId()) || empty($primaryCompany)) {
-            return;
+        if ( [] === $companySegmentIds || [] === $primaryCompany || 0 === $lead->getId() ) {
+            return $event->setResult($somethingHappened);
         }
 
         $company = $this->companyModel->getRepository()->find($primaryCompany['id']);
