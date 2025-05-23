@@ -53,28 +53,27 @@ class CampaignSubscriber implements EventSubscriberInterface
         $event->addCondition(self::MANAGE_COMPANY_SEGMENT_CONDITION, $trigger);
     }
 
-    public function onCampaignActionTriggerAction(CampaignExecutionEvent $event)
+    public function onCampaignActionTriggerAction(CampaignExecutionEvent $event): CampaignExecutionEvent
     {
-        if (!$this->config->isPublished()) {
-            return;
-        }
+        $somethingHappened = false;
 
-        if (!$event->checkContext(self::MANAGE_COMPANY_SEGMENT_ACTION)) {
-            return;
+        if (!$this->config->isPublished() || !$event->checkContext(self::MANAGE_COMPANY_SEGMENT_ACTION)) {
+            return $event->setResult($somethingHappened);
         }
 
         $addTo      = $event->getConfig()['addToLists'];
         $removeFrom = $event->getConfig()['removeFromLists'];
 
+
         $lead              = $event->getLead();
-        $somethingHappened = false;
+
         $primaryCompany    = $lead->getPrimaryCompany();
 
-        if (!empty($addTo) && !empty($primaryCompany['id'])) {
+        if ([] !== $addTo && array_key_exists('id',$primaryCompany) && !empty($primaryCompany['id'])) {
             $somethingHappened = $this->addRemoveCompanyToSegment($addTo, (int) $primaryCompany['id'], true);
         }
 
-        if (!empty($removeFrom) && !empty($primaryCompany['id'])) {
+        if ([] !== $removeFrom && array_key_exists('id',$primaryCompany) &&  !empty($primaryCompany['id'])) {
             $somethingHappened = $this->addRemoveCompanyToSegment($removeFrom, (int) $primaryCompany['id'], false);
         }
 
@@ -84,7 +83,7 @@ class CampaignSubscriber implements EventSubscriberInterface
     private function addRemoveCompanyToSegment(array $companySegmentIds, int $idPrimaryCompany, bool $isToAdd = true): bool
     {
         $somethingHappened = false;
-        if (!empty($companySegmentIds)) {
+        if ([] !== $companySegmentIds) {
             $companyEntity = $this->companyModel->getRepository()->find($idPrimaryCompany);
             if (null === $companyEntity) {
                 return $somethingHappened;
@@ -129,7 +128,7 @@ class CampaignSubscriber implements EventSubscriberInterface
             ]
         );
 
-        if (!empty($companySegment)) {
+        if (is_array($companySegment) && count($companySegment) > 0) {
             return $event->setResult(true);
         }
 
