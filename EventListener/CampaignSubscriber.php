@@ -1,0 +1,147 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener;
+
+use Mautic\CampaignBundle\CampaignEvents;
+use Mautic\CampaignBundle\Event\CampaignBuilderEvent;
+use Mautic\CampaignBundle\Event\CampaignExecutionEvent;
+use Mautic\LeadBundle\Model\CompanyModel;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\CampaignEventCompanySegmentsType;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\CompanySegmentActionType;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\Config;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\LeuchtfeuerCompanySegmentsEvents;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class CampaignSubscriber implements EventSubscriberInterface
+{
+    public const MANAGE_COMPANY_SEGMENT_ACTION    = 'company_segments.action.modify';
+    public const MANAGE_COMPANY_SEGMENT_CONDITION = 'company_segments.condition.modify';
+
+    public function __construct(
+        private Config $config,
+        private CompanySegmentModel $companySegmentModel,
+        private CompanyModel $companyModel,
+    ) {
+    }
+
+    public function onCampaignBuild(CampaignBuilderEvent $event): void
+    {
+        if (!$this->config->isPublished()) {
+            //            dump('1111');
+            return;
+        }
+
+        $action = [
+            'label'           => 'plugin.company_segments.modify_contact_segment.label',
+            'description'     => 'plugin.company_segments.modify_contact_segment.description',
+            'formType'        => CompanySegmentActionType::class,
+            'eventName'       => LeuchtfeuerCompanySegmentsEvents::MANAGE_COMPANY_SEGMENT_EVENT,
+        ];
+
+        $event->addAction(self::MANAGE_COMPANY_SEGMENT_ACTION, $action);
+
+        $trigger = [
+            'label'       => 'mautic.company_segments.events.segments',
+            'description' => 'mautic.company_segments.events.segments_descr',
+            'formType'    => CampaignEventCompanySegmentsType::class,
+            'eventName'   => LeuchtfeuerCompanySegmentsEvents::ON_CAMPAIGN_TRIGGER_CONDITION,
+        ];
+
+        $event->addCondition(self::MANAGE_COMPANY_SEGMENT_CONDITION, $trigger);
+    }
+
+    public function onCampaignActionTriggerAction(CampaignExecutionEvent $event)
+    {
+        if (!$this->config->isPublished()) {
+            return;
+        }
+
+        if (!$event->checkContext(self::MANAGE_COMPANY_SEGMENT_ACTION)) {
+            return;
+        }
+
+        $addTo      = $event->getConfig()['addToLists'];
+        $removeFrom = $event->getConfig()['removeFromLists'];
+
+        $lead              = $event->getLead();
+        $somethingHappened = false;
+        $primaryCompany    = $lead->getPrimaryCompany();
+
+        if (!empty($addTo) && !empty($primaryCompany['id'])) {
+            $somethingHappened = $this->addRemoveCompanyToSegment($addTo, (int) $primaryCompany['id'], true);
+        }
+
+        if (!empty($removeFrom) && !empty($primaryCompany['id'])) {
+            $somethingHappened = $this->addRemoveCompanyToSegment($removeFrom, (int) $primaryCompany['id'], false);
+        }
+
+        return $event->setResult($somethingHappened);
+    }
+
+    private function addRemoveCompanyToSegment(array $companySegmentIds, int $idPrimaryCompany, bool $isToAdd = true): bool
+    {
+        $somethingHappened = false;
+        if (!empty($companySegmentIds)) {
+            $companyEntity = $this->companyModel->getRepository()->find($idPrimaryCompany);
+            if (null === $companyEntity) {
+                return $somethingHappened;
+            }
+            if (!$isToAdd) {
+                $this->companySegmentModel->removeCompany($companyEntity, $companySegmentIds, false, true);
+            } else {
+                $this->companySegmentModel->addCompany($companyEntity, $companySegmentIds);
+            }
+            $somethingHappened = true;
+        }
+
+        return $somethingHappened;
+    }
+
+    public function onCampaignConditionTriggerAction(CampaignExecutionEvent $event)
+    {
+        if (!$this->config->isPublished()) {
+            //            dump('aaa');
+            return;
+        }
+
+        if (!$event->checkContext(self::MANAGE_COMPANY_SEGMENT_CONDITION)) {
+            return;
+        }
+
+        $companySegmentIds = $event->getConfig()['companySegments'];
+
+        $lead           = $event->getLead();
+        $primaryCompany = $lead->getPrimaryCompany();
+
+        if (empty($lead) || empty($lead->getId()) || empty($primaryCompany)) {
+            return;
+        }
+
+        $company = $this->companyModel->getRepository()->find($primaryCompany['id']);
+
+        $companySegment = $this->companySegmentModel->getCompaniesSegmentsRepository()->findBy(
+            [
+                'company'        => $company,
+                'companySegment' => $companySegmentIds,
+            ]
+        );
+
+        if (!empty($companySegment)) {
+            return $event->setResult(true);
+        }
+
+        return $event->setResult(false);
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            CampaignEvents::CAMPAIGN_ON_BUILD                               => ['onCampaignBuild', 0],
+            LeuchtfeuerCompanySegmentsEvents::MANAGE_COMPANY_SEGMENT_EVENT  => ['onCampaignActionTriggerAction', 0],
+            LeuchtfeuerCompanySegmentsEvents::ON_CAMPAIGN_TRIGGER_CONDITION => ['onCampaignConditionTriggerAction', 0],
+        ];
+    }
+}

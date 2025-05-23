@@ -436,7 +436,7 @@ class CompanySegmentModel extends FormModel
      *
      * @see \Mautic\LeadBundle\Model\ListModel::removeLead
      */
-    public function removeCompany(Company $company, iterable $companySegments, bool $manuallyRemoved = false): void
+    public function removeCompany(Company $company, iterable $companySegments, bool $manuallyRemoved = false, bool $forceRemove = false): void
     {
         if (is_array($companySegments) && is_numeric(current($companySegments))) {
             foreach ($companySegments as $index => $segmentId) {
@@ -460,10 +460,6 @@ class CompanySegmentModel extends FormModel
         $companySaveSegment   = [];
         $companyDeleteSegment = [];
         foreach ($companySegments as $companySegment) {
-            if (!$companySegment->hasCompany($company)) {
-                continue;
-            }
-
             $companiesSegments = $this->getCompaniesSegmentsRepository()->findOneBy(
                 [
                     'company'        => $company,
@@ -475,8 +471,7 @@ class CompanySegmentModel extends FormModel
                 // Company is not part of this segment
                 continue;
             }
-
-            if (($manuallyRemoved && $companiesSegments->isManuallyAdded()) || (!$manuallyRemoved && !$companiesSegments->isManuallyAdded())) {
+            if ($forceRemove || ($manuallyRemoved && $companiesSegments->isManuallyAdded()) || (!$manuallyRemoved && !$companiesSegments->isManuallyAdded())) {
                 // Company was manually added and now manually removed or was not manually added and now being removed
                 $companyDeleteSegment[$companySegment->getId()] = $companiesSegments;
                 $companySegment->removeCompaniesSegment($companiesSegments);
