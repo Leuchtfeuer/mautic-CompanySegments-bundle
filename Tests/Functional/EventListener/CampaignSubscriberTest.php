@@ -44,9 +44,9 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
     public function testCompanySegmentActionAddAndRemoveA(): void
     {
         $this->activePlugin();
-        $leadJoeGlibi  = $this->createLead('Joe', 'joe@glibi.com');
-        $leadMaryGlibi = $this->createLead('Mary', 'mary@glibi.com');
-        $leadJohnTBS   = $this->createLead('John', 'mary@tbs.com');
+        $leadJoeGlibi  = $this->createLead('joe@glibi.com', 'Joe');
+        $leadMaryGlibi = $this->createLead('mary@glibi.com', 'Mary');
+        $leadJohnTBS   = $this->createLead('mary@tbs.com', 'John');
 
         $companyGlibi = $this->createCompany('Glibi');
         $companyTBS   = $this->createCompany('TBS');
@@ -156,12 +156,12 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         self::assertCount(0, $totalCompaniesCompanySegmentGlibiAfter);
     }
 
-    public function testCompanySegmentActionAddAndRemoveB()
+    public function testCompanySegmentActionAddAndRemoveB(): void
     {
         $this->activePlugin();
-        $leadJoeGlibi  = $this->createLead('Joe', 'joe@glibi.com');
-        $leadMaryGlibi = $this->createLead('Mary', 'mary@glibi.com');
-        $leadJohnTBS   = $this->createLead('John', 'mary@tbs.com');
+        $leadJoeGlibi  = $this->createLead('joe@glibi.com', 'Joe');
+        $leadMaryGlibi = $this->createLead('mary@glibi.com', 'Mary');
+        $leadJohnTBS   = $this->createLead('mary@tbs.com', 'John');
 
         $companyGlibi = $this->createCompany('Glibi');
         $companyTBS   = $this->createCompany('TBS');
@@ -271,12 +271,12 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         self::assertCount(1, $totalCompaniesCompanySegmentAllAfter);
     }
 
-    public function testCompanySegmentAddCondition()
+    public function testCompanySegmentAddCondition(): void
     {
         $this->activePlugin();
-        $leadJoeGlibi  = $this->createLead('Joe', 'joe@glibi.com');
-        $leadMaryGlibi = $this->createLead('Mary', 'mary@glibi.com');
-        $leadJohnTBS   = $this->createLead('John', 'mary@tbs.com');
+        $leadJoeGlibi  = $this->createLead('joe@glibi.com', 'Joe');
+        $leadMaryGlibi = $this->createLead('mary@glibi.com', 'Mary');
+        $leadJohnTBS   = $this->createLead('mary@tbs.com', 'John');
 
         self::assertNull($leadJoeGlibi->getLastname());
         self::assertNull($leadMaryGlibi->getLastname());
@@ -446,15 +446,21 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         $leadMaryGlibiAfter = $this->em->getRepository(Lead::class)->find($leadMaryGlibi->getId());
         $leadJohnTBSAfter   = $this->em->getRepository(Lead::class)->find($leadJohnTBS->getId());
 
+        self::assertNotNull($leadJoeGlibiAfter);
         self::assertSame($lastnameYES, $leadJoeGlibiAfter->getLastname());
+        self::assertNotNull($leadMaryGlibiAfter);
         self::assertSame($lastnameYES, $leadMaryGlibiAfter->getLastname());
+        self::assertNotNull($leadJohnTBSAfter);
         self::assertSame($lastnameNO, $leadJohnTBSAfter->getLastname());
     }
 
+    /**
+     * @param array<string, mixed> $properties
+     */
     private function createEventModifyCompanySegment(
         string $name,
         string $type,
-        array $properties,
+        array $properties = [],
         string $eventType = 'action',
         int $order =1,
         string $anchor = '',
@@ -466,10 +472,10 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         $event->setType($type);
         $event->setEventType($eventType);
         $event->setProperties($properties);
-        if (!empty($anchor)) {
+        if ('' !== $anchor) {
             $event->setDecisionPath($anchor);
         }
-        if (!empty($parent)) {
+        if (null !== $parent) {
             $event->setParent($parent);
         }
 
@@ -486,7 +492,7 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         return $campaignMember;
     }
 
-    private function createLead(string $name='Joe', $email): Lead
+    private function createLead(string $email, string $name='Joe'): Lead
     {
         $lead = new Lead();
         $lead->setFirstname($name);
@@ -500,7 +506,7 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         return $lead;
     }
 
-    private function createCompany($companyName = 'Mauticcomp'): Company
+    private function createCompany(string $companyName = 'Mauticcomp'): Company
     {
         $company = new Company();
         $company->setName($companyName);
@@ -513,7 +519,7 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         return $company;
     }
 
-    private function createCompanySegment($name = 'Segment test', $alias = 'segment-test', $isPublished = true): CompanySegment
+    private function createCompanySegment(string $name = 'Segment test', string $alias = 'segment-test', bool $isPublished = true): CompanySegment
     {
         $companySegment = new CompanySegment();
         $companySegment->setName($name);
@@ -536,7 +542,7 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         $this->em->persist($lead);
         $this->em->flush();
 
-        $companyModel  = $this->getContainer()->get('mautic.lead.model.company');
+        $companyModel  = self::getContainer()->get('mautic.lead.model.company');
         assert($companyModel instanceof \Mautic\LeadBundle\Model\CompanyModel);
         $companyModel->addLeadToCompany($company, $lead);
     }
@@ -555,7 +561,7 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
     {
         $this->client->request('GET', '/s/plugins/reload');
         $integration = $this->em->getRepository(Integration::class)->findOneBy(['name' => 'LeuchtfeuerCompanySegments']);
-        if (empty($integration)) {
+        if (null === $integration) {
             $plugin      = $this->em->getRepository(Plugin::class)->findOneBy(['bundle' => 'LeuchtfeuerCompanySegmentsBundle']);
             $integration = new Integration();
             $integration->setName('LeuchtfeuerCompanySegments');
@@ -563,7 +569,9 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
             $integration->setApiKeys([]);
         }
         $integration->setIsPublished($isPublished);
-        $this->em->getRepository(Integration::class)->saveEntity($integration);
+        $integrationRepository = $this->em->getRepository(Integration::class);
+        assert($integrationRepository instanceof \Mautic\PluginBundle\Entity\IntegrationRepository);
+        $integrationRepository->saveEntity($integration);
         $this->em->persist($integration);
         $this->em->flush();
     }

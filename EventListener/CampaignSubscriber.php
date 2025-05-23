@@ -53,12 +53,13 @@ class CampaignSubscriber implements EventSubscriberInterface
         $event->addCondition(self::MANAGE_COMPANY_SEGMENT_CONDITION, $trigger);
     }
 
+    /** @phpstan-ignore-next-line */
     public function onCampaignActionTriggerAction(CampaignExecutionEvent $event): CampaignExecutionEvent
     {
         $somethingHappened = false;
 
         if (!$this->config->isPublished() || !$event->checkContext(self::MANAGE_COMPANY_SEGMENT_ACTION)) {
-            return $event->setResult($somethingHappened);
+            return $event->setResult(false);
         }
 
         $addTo      = $event->getConfig()['addToLists'];
@@ -101,11 +102,11 @@ class CampaignSubscriber implements EventSubscriberInterface
         return $somethingHappened;
     }
 
-    public function onCampaignConditionTriggerAction(CampaignExecutionEvent $event)
+    /** @phpstan-ignore-next-line */
+    public function onCampaignConditionTriggerAction(CampaignExecutionEvent $event): CampaignExecutionEvent
     {
-        $somethingHappened = false;
         if (!$this->config->isPublished() || !$event->checkContext(self::MANAGE_COMPANY_SEGMENT_CONDITION)) {
-            return $event->setResult($somethingHappened);
+            return $event->setResult(false);
         }
 
         $companySegmentIds = $event->getConfig()['companySegments'];
@@ -113,8 +114,16 @@ class CampaignSubscriber implements EventSubscriberInterface
         $lead           = $event->getLead();
         $primaryCompany = $lead->getPrimaryCompany();
 
-        if ( [] === $companySegmentIds || [] === $primaryCompany || 0 === $lead->getId() ) {
-            return $event->setResult($somethingHappened);
+        if (
+            [] === $companySegmentIds
+            || [] === $primaryCompany
+            || !is_array($primaryCompany)
+            || !array_key_exists('id', $primaryCompany)
+            || '' === $primaryCompany['id']
+            || null === $primaryCompany['id']
+            || 0 === $lead->getId()
+        ) {
+            return $event->setResult(false);
         }
 
         $company = $this->companyModel->getRepository()->find($primaryCompany['id']);

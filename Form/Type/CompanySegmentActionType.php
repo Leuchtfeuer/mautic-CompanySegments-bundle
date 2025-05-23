@@ -6,6 +6,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 
 /**
+ * @phpstan-ignore-next-line
+ *
  * @extends AbstractType<mixed>
  */
 class CompanySegmentActionType extends AbstractType

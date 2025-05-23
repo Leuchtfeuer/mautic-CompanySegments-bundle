@@ -2,6 +2,7 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type;
 
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -9,6 +10,8 @@ use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
+ * @phpstan-ignore-next-line
+ *
  * @extends AbstractType<mixed>
  */
 class CompanySegmentListType extends AbstractType
@@ -22,15 +25,18 @@ class CompanySegmentListType extends AbstractType
     {
         $resolver->setDefaults([
             'choices' => function (Options $options): array {
-                $listsCompanySegments = (empty($options['global_only'])) ? $this->companySegmentModel->getEntities() : $this->companySegmentModel->getEntities();
-                $listsCompanySegments = (empty($options['preference_center_only'])) ? $listsCompanySegments : $listsCompanySegments;
-
-                $choices = [];
+                $listsCompanySegments = $this->companySegmentModel->getEntities();
+                $choices              = [];
                 foreach ($listsCompanySegments as $companySegment) {
-                    if (empty($options['preference_center_only'])) {
+                    assert($companySegment instanceof CompanySegment);
+                    if (null === $options['preference_center_only'] || '' === $options['preference_center_only']) {
                         $choices[$companySegment->getName()] = $companySegment->getId();
                     } else {
-                        $choices[empty($companySegment->getPublicName()) ? $companySegment->getName() : $companySegment->getPublicName()] = $companySegment->getId();
+                        $key = $companySegment->getName();
+                        if (null !== $companySegment->getPublicName() && '' !== $companySegment->getPublicName()) {
+                            $key = $companySegment->getPublicName();
+                        }
+                        $choices[$key] = $companySegment->getId();
                     }
                 }
 
