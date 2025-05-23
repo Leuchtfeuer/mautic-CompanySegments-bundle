@@ -458,7 +458,7 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         string $eventType = 'action',
         int $order =1,
         string $anchor = '',
-        ?Event $parent = null
+        ?Event $parent = null,
     ): Event {
         $event = new Event();
         $event->setOrder($order);
