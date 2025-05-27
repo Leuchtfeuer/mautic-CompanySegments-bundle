@@ -1,0 +1,25 @@
+name: Code Review
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, review_requested]
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Checkout workflow repository
+        uses: actions/checkout@v4
+        with:
+          repository: Leuchtfeuer/mautic-ci-runner
+          token: ${{ secrets.GH_TOKEN }}
+          path: .github/pr_review
+      - name: move action file
+        run: mv .github/pr_review/.github/actions/ai_review ./.github
+      - name: AI Code Review
+        uses: ./.github/ai_review
+        with:
+          LLM_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
