@@ -45,7 +45,11 @@ In the Company single view, you will now find a green bubble for each of the com
 
 In the Company edit view, you can add or remove tags as desired.
 
-In Campaigns, you now have a new Action called "Modify Company Tags".
+In Campaigns, you now have a new Actions called:
+* "Modify Company Tags"
+* "Modify Company Segments".
+
+In Campaigns, you now have a new Condition called "Company Segments"
 
 In Reports, you now have a new data source "Company Tags" that allows you to filter on Company Tags.
 
