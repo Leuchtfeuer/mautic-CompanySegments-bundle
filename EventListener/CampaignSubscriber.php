@@ -30,7 +30,6 @@ class CampaignSubscriber implements EventSubscriberInterface
     public function onCampaignBuild(CampaignBuilderEvent $event): void
     {
         if (!$this->config->isPublished()) {
-            //            dump('1111');
             return;
         }
 
