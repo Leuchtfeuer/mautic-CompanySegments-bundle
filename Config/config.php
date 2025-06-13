@@ -3,7 +3,7 @@
 return [
     'name'        => 'Company Segments by Leuchtfeuer',
     'description' => 'Provide a 2nd type of Segments which can contain Companies (and allows segment filters).',
-    'version'     => '1.1.0',
+    'version'     => '1.3.0',
     'author'      => 'Leuchtfeuer Digital Marketing GmbH',
     'routes'      => [
         'main' => [
@@ -22,6 +22,10 @@ return [
             'mautic_company_segments_batch_company_view' => [
                 'path'       => '/company-segments/batch/company/view',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\BatchSegmentController::indexAction',
+            ],
+            'mautic_company_action' => [
+                'path'       => '/companies/{objectAction}/{objectId}',
+                'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanyController::executeAction',
             ],
         ],
         'api' => [
