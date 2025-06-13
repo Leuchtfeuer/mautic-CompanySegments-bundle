@@ -18,7 +18,7 @@ class CompanyEventLogRepository extends CommonRepository
      * @param string $bundle
      * @param string $object
      */
-    public function getFailedRows($importId, array $args = [], $bundle = 'company', $object = 'import'): \Doctrine\ORM\Tools\Pagination\Paginator
+    public function getFailedRows($importId, array $args = [], $bundle = 'company', $object = 'import'): Paginator
     {
         return $this->getSpecificRows($importId, 'failed', $args, $bundle, $object);
     }

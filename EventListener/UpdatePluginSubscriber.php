@@ -13,7 +13,7 @@ class UpdatePluginSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private PluginModel $pluginModel,
-        private MauticFactory $factory
+        private MauticFactory $factory,
     ) {
         // Constructor logic if needed
     }
