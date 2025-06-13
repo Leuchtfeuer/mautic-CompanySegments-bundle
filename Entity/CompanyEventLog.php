@@ -64,7 +64,7 @@ class CompanyEventLog
     protected $dateAdded;
 
     /**
-     * @var string|null
+     * @var array|null
      */
     protected $properties;
 
@@ -222,12 +222,12 @@ class CompanyEventLog
         return $this;
     }
 
-    public function getProperties(): ?string
+    public function getProperties(): ?array
     {
         return $this->properties;
     }
 
-    public function setProperties(?string $properties): self
+    public function setProperties(?array $properties): self
     {
         $this->properties = $properties;
 

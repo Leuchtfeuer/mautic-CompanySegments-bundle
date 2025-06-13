@@ -55,7 +55,7 @@ trait TimelineCompanyEventLogTrait
             'eventLabel' => $this->getSourceName($log, $eventType),
             'timestamp'  => $log['date_added'],
             'icon'       => $icon,
-            'contactId'  => $log['lead_id'],
+            'contactId'  => $log['company_id'],
             'extra'      => $properties,
         ];
 
@@ -74,7 +74,7 @@ trait TimelineCompanyEventLogTrait
         $properties = json_decode($log['properties'], true);
 
         if (!empty($properties['object_description'])) {
-            $customString = 'mautic.lead.timeline.'.$eventType.'_by_object';
+            $customString = 'mautic.company.timeline.'.$eventType.'_by_object';
             if ($this->translator->hasId($customString)) {
                 return $this->translator->trans(
                     $customString,
@@ -84,7 +84,7 @@ trait TimelineCompanyEventLogTrait
                 );
             }
 
-            $customString = 'mautic.lead.timeline.'.$eventType.'_'.$log['action'].'_by_object';
+            $customString = 'mautic.company.timeline.'.$eventType.'_'.$log['action'].'_by_object';
             if ($this->translator->hasId($customString)) {
                 return $this->translator->trans(
                     $customString,
@@ -95,18 +95,18 @@ trait TimelineCompanyEventLogTrait
             }
         }
 
-        $customString = 'mautic.lead.timeline.'.$log['bundle'].'.'.$log['object'];
+        $customString = 'mautic.company.timeline.'.$log['bundle'].'.'.$log['object'];
         if ($this->translator->hasId($customString)) {
             return $this->translator->trans($customString);
         }
 
-        $customString = 'mautic.lead.timeline.'.$log['bundle'].'.'.$log['object'].'.'.$log['action'];
+        $customString = 'mautic.company.timeline.'.$log['bundle'].'.'.$log['object'].'.'.$log['action'];
         if ($this->translator->hasId($customString)) {
             return $this->translator->trans($customString);
         }
 
         return $this->translator->trans(
-            'mautic.lead.timeline.'.$eventType,
+            'mautic.company.timeline.'.$eventType,
             [
                 '%bundle%' => $log['bundle'],
                 '%object%' => $log['object'],

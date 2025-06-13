@@ -17,12 +17,17 @@ class CompanyEventLogRepository extends CommonRepository
      * @param string $importId
      * @param string $bundle
      * @param string $object
+     * @param array<string,mixed> $args
      */
     public function getFailedRows($importId, array $args = [], $bundle = 'company', $object = 'import'): Paginator
     {
         return $this->getSpecificRows($importId, 'failed', $args, $bundle, $object);
     }
 
+    /**
+     * @param array<string,mixed> $args
+     * @return array<mixed>
+     */
     public function getEntities(array $args = []): array
     {
         $entities = parent::getEntities($args);
@@ -30,10 +35,14 @@ class CompanyEventLogRepository extends CommonRepository
 
         foreach ($entities as $key => $row) {
             if (
-                isset($row['properties']['error'])
+                isset($row['properties'])
+                && is_array($row['properties'])
+                && isset($row['properties']['error'])
                 && preg_match('/SQLSTATE\[\w+\]: (.*)/', $row['properties']['error'], $matches)
             ) {
-                $entities[$key]['properties']['error'] = $matches[1];
+                if (isset($matches[1]) && !empty($matches[1])) {
+                    $entities[$key]['properties']['error'] = $matches[1];
+                }
             }
         }
 
@@ -43,8 +52,11 @@ class CompanyEventLogRepository extends CommonRepository
     /**
      * Returns paginator with specific type of rows.
      *
+     * @param string|int $objectId
      * @param string $bundle
      * @param string $object
+     * @param string|int $action
+     * @param array<string,mixed> $args
      */
     public function getSpecificRows($objectId, $action, array $args = [], $bundle = 'lead', $object = 'import'): Paginator
     {
@@ -89,9 +101,10 @@ class CompanyEventLogRepository extends CommonRepository
     /**
      * @param ?string           $bundle
      * @param ?string           $object
-     * @param array|string|null $actions
+     * @param array<string,string>|string|null $actions
+     * @param array<string,string> $options
      *
-     * @return array
+     * @return array<mixed>
      */
     public function getEvents(?Company $company = null, $bundle = null, $object = null, $actions = null, array $options = [])
     {
