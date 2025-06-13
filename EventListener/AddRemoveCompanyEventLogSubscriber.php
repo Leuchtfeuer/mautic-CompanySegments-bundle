@@ -3,18 +3,15 @@
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener;
 
 use Mautic\LeadBundle\Entity\Company;
-use Mautic\LeadBundle\Event\CompanyEvent;
-use Mautic\LeadBundle\LeadEvents;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLog;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentAddEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRemoveEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanyEventLogModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLog;
 
 class AddRemoveCompanyEventLogSubscriber implements EventSubscriberInterface
 {
-
     public function __construct(
         private CompanyEventLogModel $companyEventLogModel,
     ) {
@@ -25,10 +22,10 @@ class AddRemoveCompanyEventLogSubscriber implements EventSubscriberInterface
     {
         return [
             CompanySegmentAddEvent::class  => [
-                ['onAddCompanySegmentEvent', 0]
+                ['onAddCompanySegmentEvent', 0],
             ],
             CompanySegmentRemoveEvent::class  => [
-                ['onRemoveCompanySegmentEvent', 0]
+                ['onRemoveCompanySegmentEvent', 0],
             ],
         ];
     }

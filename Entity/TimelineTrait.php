@@ -24,12 +24,12 @@ trait TimelineTrait
     private function getTimelineResults(
         QueryBuilder $query,
         array $options,
-                     $eventNameColumn,
-                     $timestampColumn,
-                     $serializedColumns = [],
-                     $dateTimeColumns = [],
-                     $resultsParserCallback = null,
-        string $secondaryOrdering = null
+        $eventNameColumn,
+        $timestampColumn,
+        $serializedColumns = [],
+        $dateTimeColumns = [],
+        $resultsParserCallback = null,
+        ?string $secondaryOrdering = null
     ) {
         if (!empty($options['unitCounts'])) {
             [$tablePrefix, $column] = explode('.', $timestampColumn);

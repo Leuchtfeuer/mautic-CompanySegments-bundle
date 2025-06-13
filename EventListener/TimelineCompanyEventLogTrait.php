@@ -3,8 +3,6 @@
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener;
 
 use Mautic\CoreBundle\Translation\Translator;
-use Mautic\LeadBundle\Entity\LeadEventLogRepository;
-use Mautic\LeadBundle\Event\LeadTimelineEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLogRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanyTimelineEvent;
 

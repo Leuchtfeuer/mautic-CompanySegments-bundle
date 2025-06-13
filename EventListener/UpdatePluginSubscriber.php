@@ -2,15 +2,12 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener;
 
-use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\PluginBundle\Bundle\PluginBundleBase;
 use Mautic\PluginBundle\Event\PluginUpdateEvent;
 use Mautic\PluginBundle\Model\PluginModel;
 use Mautic\PluginBundle\PluginEvents;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLog;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Mautic\IntegrationsBundle\Bundle\AbstractPluginBundle;
 
 class UpdatePluginSubscriber implements EventSubscriberInterface
 {
@@ -20,6 +17,7 @@ class UpdatePluginSubscriber implements EventSubscriberInterface
     ) {
         // Constructor logic if needed
     }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -32,10 +30,11 @@ class UpdatePluginSubscriber implements EventSubscriberInterface
         $pluginMetadata          = $this->pluginModel->getPluginsMetadata();
 
         $companyEventLogMetadata = $pluginMetadata['MauticPlugin\LeuchtfeuerCompanySegmentsBundle'];
-        $tableInstalled =$this->pluginModel->getInstalledPluginTables($pluginMetadata);
+        $tableInstalled          =$this->pluginModel->getInstalledPluginTables($pluginMetadata);
         if (empty($tableInstalled)) {
             // No tables installed, so we can install the schema
             PluginBundleBase::installPluginSchema($companyEventLogMetadata, $this->factory);
+
             return;
         }
         if (isset($tableInstalled['MauticPlugin\LeuchtfeuerCompanySegmentsBundle'])) {
@@ -49,9 +48,6 @@ class UpdatePluginSubscriber implements EventSubscriberInterface
             }
         }
         // work here to check if schema is already installed
-        PluginBundleBase::installPluginSchema($companyEventLogMetadata,$this->factory);
-
-
+        PluginBundleBase::installPluginSchema($companyEventLogMetadata, $this->factory);
     }
-
 }

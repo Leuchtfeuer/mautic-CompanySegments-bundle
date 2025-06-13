@@ -68,18 +68,15 @@ class CompanyEventLog
      */
     protected $properties;
 
-    /**
-     * @param ORM\ClassMetadata $metadata
-     */
     public static function loadMetadata(ORM\ClassMetadata $metadata): void
     {
         $builder = new ClassMetadataBuilder($metadata);
         $builder->setTable('company_event_log')
             ->setCustomRepositoryClass(CompanyEventLogRepository::class)
             ->addIndex(['company_id'], 'company_id_index')
-            ->addIndex(['object','object_id'], 'company_object_index')
-            ->addIndex(['bundle', 'object', 'action', 'object_id'],'company_timeline_index')
-            ->addIndex(['bundle', 'object', 'action', 'object_id','date_added'],self::INDEX_SEARCH)
+            ->addIndex(['object', 'object_id'], 'company_object_index')
+            ->addIndex(['bundle', 'object', 'action', 'object_id'], 'company_timeline_index')
+            ->addIndex(['bundle', 'object', 'action', 'object_id', 'date_added'], self::INDEX_SEARCH)
             ->addIndex(['action'], 'company_timeline_action_index')
             ->addIndex(['date_added'], 'company_date_added_index')
             ->addBigIntIdField()
@@ -119,169 +116,121 @@ class CompanyEventLog
                 'objectId',
                 'action',
                 'dateAdded',
-                'properties'
+                'properties',
             ])
             ->build();
     }
 
-    /**
-     * @return int
-     */
     public function getId(): int
     {
         return (int) $this->id;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setCompany(Company $company): self
     {
         $this->company = $company;
+
         return $this;
     }
 
-    /**
-     * @return Company|null
-     */
     public function getCompany(): ?Company
     {
         return $this->company;
     }
 
-    /**
-     * @return int|null
-     */
     public function getUserId(): ?int
     {
         return $this->userId;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setUserId(?int $userId): self
     {
         $this->userId = $userId;
+
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getUserName(): ?string
     {
         return $this->userName;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setUserName(?string $userName): self
     {
         $this->userName = $userName;
+
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getBundle(): ?string
     {
         return $this->bundle;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setBundle(?string $bundle): self
     {
         $this->bundle = $bundle;
+
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getObject(): ?string
     {
         return $this->object;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setObject(?string $object): self
     {
         $this->object = $object;
+
         return $this;
     }
 
-    /**
-     * @return int|null
-     */
     public function getObjectId(): ?int
     {
         return $this->objectId;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setObjectId(?int $objectId): self
     {
         $this->objectId = $objectId;
+
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getAction(): ?string
     {
         return $this->action;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setAction(?string $action): self
     {
         $this->action = $action;
+
         return $this;
     }
 
-    /**
-     * @return \DateTime|null
-     */
     public function getDateAdded(): ?\DateTime
     {
         return $this->dateAdded;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setDateAdded(?\DateTime $dateAdded): self
     {
         $this->dateAdded = $dateAdded;
+
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getProperties(): ?string
     {
         return $this->properties;
     }
 
-    /**
-     * @return CompanyEventLog
-     */
     public function setProperties(?string $properties): self
     {
         $this->properties = $properties;
+
         return $this;
     }
 
@@ -290,8 +239,6 @@ class CompanyEventLog
      *
      * @param string $key
      * @param string $value
-     *
-     * @return CompanyEventLog
      */
     public function addProperty($key, $value): self
     {
@@ -299,6 +246,4 @@ class CompanyEventLog
 
         return $this;
     }
-
-
 }

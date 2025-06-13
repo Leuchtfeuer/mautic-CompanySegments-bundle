@@ -2,20 +2,16 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model;
 
-use Mautic\LeadBundle\Entity\Company;
-use Mautic\LeadBundle\Entity\Lead;
-use Mautic\LeadBundle\Event\LeadTimelineEvent;
-use Mautic\LeadBundle\LeadEvents;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLog;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Mautic\CoreBundle\Helper\CoreParametersHelper;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanyTimelineEvent;
 use Doctrine\ORM\EntityManagerInterface;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\LeadBundle\Entity\Company;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLog;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanyTimelineEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\LeuchfeuerCompanySegmentsEvents;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class CompanyEventLogModel
 {
-
     public function __construct(
         private EventDispatcherInterface $dispatcher,
         private CoreParametersHelper $coreParametersHelper,

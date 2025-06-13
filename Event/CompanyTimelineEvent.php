@@ -5,11 +5,10 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\DateTimeHelper;
 use Mautic\LeadBundle\Entity\Company;
-use Mautic\LeadBundle\Entity\Lead;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**
- * Class CompanyTimelineEvent
+ * Class CompanyTimelineEvent.
  *
  * This event is dispatched when a company timeline event occurs.
  */
@@ -89,11 +88,11 @@ class CompanyTimelineEvent extends Event
     ];
 
     /**
-     * @param Company|null   $company  Company entity for the company the timeline is being generated for
-     * @param int         $page
-     * @param int         $limit       Limit per type
-     * @param bool        $forTimeline
-     * @param string|null $siteDomain
+     * @param Company|null $company     Company entity for the company the timeline is being generated for
+     * @param int          $page
+     * @param int          $limit       Limit per type
+     * @param bool         $forTimeline
+     * @param string|null  $siteDomain
      */
     public function __construct(
         protected ?Company $company = null,
@@ -324,8 +323,8 @@ class CompanyTimelineEvent extends Event
     {
         return [
             'companyId' => ($this->company instanceof Company) ? $this->company->getId() : null,
-            'limit'  => $this->limit,
-            'start'  => (1 >= $this->page) ? 0 : ($this->page - 1) * $this->limit,
+            'limit'     => $this->limit,
+            'start'     => (1 >= $this->page) ? 0 : ($this->page - 1) * $this->limit,
         ];
     }
 
@@ -485,7 +484,7 @@ class CompanyTimelineEvent extends Event
     /**
      * Calculate engagement counts only.
      */
-    public function setCountOnly(\DateTime $dateFrom, \DateTime $dateTo, $groupUnit = null, ChartQuery $chartQuery = null): void
+    public function setCountOnly(\DateTime $dateFrom, \DateTime $dateTo, $groupUnit = null, ?ChartQuery $chartQuery = null): void
     {
         $this->countOnly  = true;
         $this->dateFrom   = $dateFrom;
@@ -578,5 +577,4 @@ class CompanyTimelineEvent extends Event
     {
         return $data['eventType'].hash('crc32', json_encode($data), false);
     }
-
 }

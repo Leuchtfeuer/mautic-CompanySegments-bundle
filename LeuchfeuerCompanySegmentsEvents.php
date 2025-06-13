@@ -14,6 +14,5 @@ class LeuchfeuerCompanySegmentsEvents
      */
     public const COMPANY_SEGMENT_REMOVE = 'leuchtfeuer_company_segment.remove';
 
-
     public const TIMELINE_ON_GENERATE = 'leuchtfeuer_company_segment.timeline_event';
 }

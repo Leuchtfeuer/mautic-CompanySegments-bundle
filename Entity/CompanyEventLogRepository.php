@@ -2,9 +2,9 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity;
 
-use Mautic\CoreBundle\Entity\CommonRepository;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\LeadBundle\Entity\Company;
 
 class CompanyEventLogRepository extends CommonRepository
@@ -15,7 +15,6 @@ class CompanyEventLogRepository extends CommonRepository
      * Returns paginator with failed rows.
      *
      * @param string $importId
-     * @param array  $args
      * @param string $bundle
      * @param string $object
      *
@@ -48,8 +47,6 @@ class CompanyEventLogRepository extends CommonRepository
      *
      * @param string $bundle
      * @param string $object
-     *
-     * @return Paginator
      */
     public function getSpecificRows($objectId, $action, array $args = [], $bundle = 'lead', $object = 'import'): Paginator
     {
@@ -98,7 +95,7 @@ class CompanyEventLogRepository extends CommonRepository
      *
      * @return array
      */
-    public function getEvents(Company $company = null, $bundle = null, $object = null, $actions = null, array $options = [])
+    public function getEvents(?Company $company = null, $bundle = null, $object = null, $actions = null, array $options = [])
     {
         $alias = $this->getTableAlias();
         $qb    = $this->getEntityManager()->getConnection()->createQueryBuilder()
@@ -161,5 +158,4 @@ class CompanyEventLogRepository extends CommonRepository
     {
         return 'cel';
     }
-
 }
