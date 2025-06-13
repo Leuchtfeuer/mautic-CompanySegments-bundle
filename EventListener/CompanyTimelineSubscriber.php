@@ -46,7 +46,7 @@ class CompanyTimelineSubscriber implements EventSubscriberInterface
         //            $eventTypes['lead.apiadded']   = 'mautic.lead.event.apiadded';
         //        }
 
-        $filters = $event->getEventFilters();
+        $event->getEventFilters();
 
         // Temporary measure as the other event types don't have tests yet
         //        if ($this->isTest) {
@@ -65,17 +65,17 @@ class CompanyTimelineSubscriber implements EventSubscriberInterface
 
             switch ($type) {
                 case 'company.segmentadd':
-                    $this->timelineSegmentAdd($event, $type, $name);
+                    $this->timelineSegmentAdd($event, $type);
                     break;
 
                 case 'company.segmentremove':
-                    $this->timelineSegmentRemove($event, $type, $name);
+                    $this->timelineSegmentRemove($event, $type);
                     break;
             }
         }
     }
 
-    private function timelineSegmentAdd(CompanyTimelineEvent $event, string $eventType, string $eventTypeName): void
+    private function timelineSegmentAdd(CompanyTimelineEvent $event, string $eventType): void
     {
         $company             = $event->getCompany();
         $resultsSegmentAdded = $this->companyEventLogModel->getRepository()->findBy([
@@ -124,7 +124,7 @@ class CompanyTimelineSubscriber implements EventSubscriberInterface
         }
     }
 
-    private function timelineSegmentRemove(CompanyTimelineEvent $event, string $eventType, string $eventTypeName)
+    private function timelineSegmentRemove(CompanyTimelineEvent $event, string $eventType): void
     {
         $company               = $event->getCompany();
         $resultsSegmentRemoved = $this->companyEventLogModel->getRepository()->findBy([
