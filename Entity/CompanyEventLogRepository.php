@@ -12,14 +12,16 @@ class CompanyEventLogRepository extends CommonRepository
     use TimelineTrait;
 
     /**
-     * Returns paginator with failed rows.
+     * Returns array with failed rows.
      *
      * @param string $importId
      * @param string $bundle
      * @param string $object
      * @param array<string,mixed> $args
+     *
+     * @return array<mixed>
      */
-    public function getFailedRows($importId, array $args = [], $bundle = 'company', $object = 'import'): Paginator
+    public function getFailedRows($importId, array $args = [], $bundle = 'company', $object = 'import'): array
     {
         return $this->getSpecificRows($importId, 'failed', $args, $bundle, $object);
     }
@@ -31,7 +33,10 @@ class CompanyEventLogRepository extends CommonRepository
     public function getEntities(array $args = []): array
     {
         $entities = parent::getEntities($args);
-        $entities = iterator_to_array($entities);
+
+        if ($entities instanceof \Traversable) {
+            $entities = iterator_to_array($entities);
+        }
 
         foreach ($entities as $key => $row) {
             if (
@@ -40,8 +45,10 @@ class CompanyEventLogRepository extends CommonRepository
                 && isset($row['properties']['error'])
                 && preg_match('/SQLSTATE\[\w+\]: (.*)/', $row['properties']['error'], $matches)
             ) {
-                if (isset($matches[1]) && !empty($matches[1])) {
+                if (isset($entities[$key]['properties']['error'])) {
                     $entities[$key]['properties']['error'] = $matches[1];
+                } elseif (is_object($entities[$key]) && isset($entities[$key]->properties->error)) {
+                    $entities[$key]->properties->error = $matches[1];
                 }
             }
         }
@@ -57,8 +64,10 @@ class CompanyEventLogRepository extends CommonRepository
      * @param string $object
      * @param string|int $action
      * @param array<string,mixed> $args
+     *
+     * @return array<mixed>
      */
-    public function getSpecificRows($objectId, $action, array $args = [], $bundle = 'lead', $object = 'import'): Paginator
+    public function getSpecificRows($objectId, $action, array $args = [], $bundle = 'lead', $object = 'import'): array
     {
         return $this->getEntities(
             array_merge(
@@ -155,9 +164,11 @@ class CompanyEventLogRepository extends CommonRepository
      */
     public function updateCompany($fromCompanyId, $toCompanyId): void
     {
+        $toCompanyId = (int) $toCompanyId;
+        $toCompanyId = (string) $toCompanyId;
         $q = $this->_em->getConnection()->createQueryBuilder();
         $q->update(MAUTIC_TABLE_PREFIX.'company_event_log')
-            ->set('company_id', (int) $toCompanyId)
+            ->set('company_id', $toCompanyId)
             ->where('company_id = '.(int) $fromCompanyId)
             ->executeStatement();
     }

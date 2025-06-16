@@ -45,6 +45,8 @@ trait TimelineTrait
         }
 
         if (!empty($options['fromDate']) && !empty($options['toDate'])) {
+            assert($options['fromDate'] instanceof \DateTime);
+            assert($options['toDate'] instanceof \DateTime);
             $query->andWhere($timestampColumn.' BETWEEN :dateFrom AND :dateTo')
                 ->setParameter('dateFrom', $options['fromDate']->format('Y-m-d H:i:s'))
                 ->setParameter('dateTo', $options['toDate']->format('Y-m-d H:i:s'));
@@ -93,12 +95,14 @@ trait TimelineTrait
             foreach ($results as &$result) {
                 foreach ($serializedColumns as $col) {
                     if (isset($result[$col])) {
+                        assert(is_string($result[$col]), 'Expected serialized column to be a string');
                         $result[$col] = (null == $result[$col]) ? [] : Serializer::decode($result[$col]);
                     }
                 }
 
                 foreach ($dateTimeColumns as $col) {
                     if (isset($result[$col]) && !empty($result[$col])) {
+                        assert(is_string($result[$col]), 'Expected serialized column to be a string');
                         $dt           = new DateTimeHelper($result[$col], 'Y-m-d H:i:s', 'UTC');
                         $result[$col] = $dt->getLocalDateTime();
                         unset($dt);
