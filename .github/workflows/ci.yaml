@@ -87,14 +87,9 @@ jobs:
             ${{ runner.os }}-js-${{ hashFiles('**/package-lock.json', 'webpack.config.js') }}
             ${{ runner.os }}-js-
 
-      - name: Add LeuchtfeuerCompanyTagsBundle as ZIP package
+      - name: Add LeuchtfeuerCompanyTagsBundle repository and require package
         run: |
-          composer config repositories.leuchtfeuer-company-tags-bundle package '{"name": "mauticplugin/leuchtfeuer-company-tags-bundle", "version": "dev-main", "dist": {"url": "https://github.com/Leuchtfeuer/mautic-CompanyTags-bundle/archive/refs/heads/main.zip", "type": "zip"}, "autoload": {"psr-4": {"MauticPlugin\\\\LeuchtfeuerCompanyTagsBundle\\\\": "LeuchtfeuerCompanyTagsBundle/"}}}'
-          composer config extra.installer-paths '{
-            "plugins/LeuchtfeuerCompanyTagsBundle": [
-              "mauticplugin/leuchtfeuer-company-tags-bundle"
-            ]
-          }'
+          composer config repositories.leuchtfeuer vcs https://github.com/Leuchtfeuer/LeuchtfeuerCompanyTagsBundle.git
           composer require mauticplugin/leuchtfeuer-company-tags-bundle:dev-main --no-interaction
 
       - name: Install composer requirements.
