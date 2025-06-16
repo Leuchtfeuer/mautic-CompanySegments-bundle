@@ -54,7 +54,7 @@
             "url": "https://github.com/mautic/SymfonyBridgeBundle.git"
         },
         {
-            "type": "git",
+            "type": "vcs",
             "url": "https://github.com/Leuchtfeuer/LeuchtfeuerCompanyTagsBundle.git"
         }
     ],
