@@ -257,10 +257,8 @@ class CompanyTimelineEvent extends Event
 
     /**
      * Get the max number of pages for pagination.
-     *
-     * @return float|int
      */
-    public function getMaxPage()
+    public function getMaxPage(): int|float
     {
         if (!$this->totalEvents) {
             return 1;
@@ -308,10 +306,8 @@ class CompanyTimelineEvent extends Event
 
     /**
      * Fetch the order for queries.
-     *
-     * @return array|null
      */
-    public function getEventOrder()
+    public function getEventOrder(): ?array
     {
         return $this->orderBy;
     }
@@ -347,10 +343,8 @@ class CompanyTimelineEvent extends Event
 
     /**
      * Fetches the company being acted on.
-     *
-     * @return Company|null
      */
-    public function getCompany()
+    public function getCompany(): ?\Mautic\LeadBundle\Entity\Company
     {
         return $this->company;
     }
