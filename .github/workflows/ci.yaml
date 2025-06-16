@@ -91,7 +91,6 @@ jobs:
         run: |
           composer config repositories.leuchtfeuer vcs https://github.com/Leuchtfeuer/LeuchtfeuerCompanyTagsBundle.git
           composer require mauticplugin/leuchtfeuer-company-tags-bundle:dev-main --no-interaction
-          
 
       - name: Install composer requirements.
         # composer install cache - https://github.com/ramsey/composer-install
