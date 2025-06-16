@@ -89,7 +89,7 @@ jobs:
 
       - name: Add LeuchtfeuerCompanyTagsBundle repository and require package
         run: |
-          composer config repositories.leuchtfeuer vcs git@github.com:your-org/LeuchtfeuerCompanyTagsBundle.git
+          composer config repositories.leuchtfeuer vcs git@github.com:Leuchtfeuer/LeuchtfeuerCompanyTagsBundle.git
           composer require mauticplugin/leuchtfeuer-company-tags-bundle:dev-main
 
       - name: Install composer requirements.
