@@ -2,6 +2,7 @@
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener;
 
+use Mautic\CoreBundle\Helper\UserHelper;
 use Mautic\LeadBundle\Entity\Company;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLog;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
@@ -9,7 +10,6 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentAddEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentRemoveEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanyEventLogModel;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Mautic\CoreBundle\Helper\UserHelper;
 
 class AddRemoveCompanyEventLogSubscriber implements EventSubscriberInterface
 {
@@ -59,18 +59,18 @@ class AddRemoveCompanyEventLogSubscriber implements EventSubscriberInterface
         $companyEventLog->setObject('company_segment');
         $companyEventLog->setObjectId($companySegment->getId());
         $companyEventLog->setDateAdded(new \DateTime());
-        $userId = null; // Set the user ID if available
-        $userName = 'System'; // or use the actual user name if available
+        $userId      = null; // Set the user ID if available
+        $userName    = 'System'; // or use the actual user name if available
         $currentUser = $this->userHelper->getUser();
         if ($currentUser) {
-            $userId = $currentUser->getId();
+            $userId   = $currentUser->getId();
             $userName = $currentUser->getUsername();
         }
         $companyEventLog->setProperties([
-            'company_segment_id' => $companySegment->getId(),
+            'company_segment_id'   => $companySegment->getId(),
             'company_segment_name' => $companySegment->getName(),
-            'company_id' => $company->getId(),
-            'object_description' => $company->getName(),
+            'company_id'           => $company->getId(),
+            'object_description'   => $company->getName(),
         ]);
         $companyEventLog->setUserId($userId); // Set the user ID if available
         $companyEventLog->setUserName($userName); // or use the actual user name if available

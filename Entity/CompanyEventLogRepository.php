@@ -14,9 +14,9 @@ class CompanyEventLogRepository extends CommonRepository
     /**
      * Returns array with failed rows.
      *
-     * @param string $importId
-     * @param string $bundle
-     * @param string $object
+     * @param string              $importId
+     * @param string              $bundle
+     * @param string              $object
      * @param array<string,mixed> $args
      *
      * @return array<mixed>
@@ -28,6 +28,7 @@ class CompanyEventLogRepository extends CommonRepository
 
     /**
      * @param array<string,mixed> $args
+     *
      * @return array<mixed>
      */
     public function getEntities(array $args = []): array
@@ -59,10 +60,10 @@ class CompanyEventLogRepository extends CommonRepository
     /**
      * Returns paginator with specific type of rows.
      *
-     * @param string|int $objectId
-     * @param string $bundle
-     * @param string $object
-     * @param string|int $action
+     * @param string|int          $objectId
+     * @param string              $bundle
+     * @param string              $object
+     * @param string|int          $action
      * @param array<string,mixed> $args
      *
      * @return array<mixed>
@@ -108,10 +109,10 @@ class CompanyEventLogRepository extends CommonRepository
     }
 
     /**
-     * @param ?string           $bundle
-     * @param ?string           $object
+     * @param ?string                          $bundle
+     * @param ?string                          $object
      * @param array<string,string>|string|null $actions
-     * @param array<string,string> $options
+     * @param array<string,string>             $options
      *
      * @return array<mixed>
      */
@@ -166,7 +167,7 @@ class CompanyEventLogRepository extends CommonRepository
     {
         $toCompanyId = (int) $toCompanyId;
         $toCompanyId = (string) $toCompanyId;
-        $q = $this->_em->getConnection()->createQueryBuilder();
+        $q           = $this->_em->getConnection()->createQueryBuilder();
         $q->update(MAUTIC_TABLE_PREFIX.'company_event_log')
             ->set('company_id', $toCompanyId)
             ->where('company_id = '.(int) $fromCompanyId)
