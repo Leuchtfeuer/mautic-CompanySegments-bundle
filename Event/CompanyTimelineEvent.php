@@ -344,7 +344,7 @@ class CompanyTimelineEvent extends Event
     /**
      * Fetches the company being acted on.
      */
-    public function getCompany(): ?\Mautic\LeadBundle\Entity\Company
+    public function getCompany(): ?Company
     {
         return $this->company;
     }
