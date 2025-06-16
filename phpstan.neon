@@ -52,5 +52,3 @@ parameters:
           count: 1
           path: Model/CompanySegmentModel.php
           reportUnmatched: false
-        - message: '#LeuchtfeuerCompanyTagsBundle#'
-          reportUnmatched: false
