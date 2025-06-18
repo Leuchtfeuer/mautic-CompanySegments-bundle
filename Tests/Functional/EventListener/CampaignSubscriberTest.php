@@ -373,8 +373,9 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         $this->testSymfonyCommand('mautic:campaigns:trigger', ['-i' => $campaign->getId()]);
 
         $this->client->request('GET', '/s/contacts/timeline/'.$leadJoeGlibi->getId());
-
-        self::assertStringNotContainsString('ri-alert-line text-danger', $this->client->getResponse()->getContent());
+        $content = $this->client->getResponse()->getContent();
+        assert(false !== $content);
+        self::assertStringNotContainsString('ri-alert-line text-danger', $content);
     }
 
     public function testCompanySegmentAddCondition(): void
