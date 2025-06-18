@@ -374,7 +374,7 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
 
         $this->client->request('GET', '/s/contacts/timeline/'.$leadJoeGlibi->getId());
         $content = $this->client->getResponse()->getContent();
-        assert(false !== $content);
+        self::assertNotFalse($content);
         self::assertStringNotContainsString('ri-alert-line text-danger', $content);
     }
 
