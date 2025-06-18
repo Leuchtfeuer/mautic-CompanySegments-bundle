@@ -68,6 +68,10 @@ class CampaignSubscriber implements EventSubscriberInterface
 
         $primaryCompany    = $lead->getPrimaryCompany();
 
+        if (null === $primaryCompany || '' === $primaryCompany || 0 === $lead->getId()) {
+            return $event->setResult(true);
+        }
+
         if ([] !== $addTo && is_array($primaryCompany) && array_key_exists('id', $primaryCompany) && '' !== $primaryCompany['id'] && null !== $primaryCompany['id']) {
             $somethingHappened = $this->addRemoveCompanyToSegment($addTo, (int) $primaryCompany['id'], true);
         }
