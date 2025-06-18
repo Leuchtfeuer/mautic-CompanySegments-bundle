@@ -8,15 +8,15 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanyTimelineEvent;
 
 trait TimelineCompanyEventLogTrait
 {
-    /**
-     * @var Translator
-     */
-    private $translator;
+//    /**
+//     * @var Translator
+//     */
+//    private $translator;
 
-    /**
-     * @var CompanyEventLogRepository
-     */
-    private $companyEventLogRepository;
+//    /**
+//     * @var CompanyEventLogRepository
+//     */
+//    private $companyEventLogRepository;
 
     private function addEvents(CompanyTimelineEvent $event, $eventType, $eventTypeName, $icon, $bundle = null, $object = null, $action = null, $contentTemplate = null): void
     {
@@ -44,15 +44,87 @@ trait TimelineCompanyEventLogTrait
         }
     }
 
-    private function getEventEntry(array $log, string $eventType, $eventTypeName, $icon, $contentTemplate): array
+    private function addCompanySegmentEvents(CompanyTimelineEvent $event, $eventType, $eventTypeName, $icon, $bundle = null, $object = null, $action = null, $contentTemplate = null): void
+    {
+        $eventTypeName = $this->translator->trans($eventTypeName);
+        $event->addEventType($eventType, $eventTypeName);
+
+        if (!$event->isApplicable($eventType)) {
+            return;
+        }
+
+        $events = $this->companyEventLogRepository->getEvents($event->getCompany(), $bundle, $object, $action, $event->getQueryOptions());
+
+        // Add to counter
+        $event->addToCounter($eventType, $events);
+
+        if ($event->isEngagementCount()) {
+            return;
+        }
+
+        // Add the logs to the event array
+        foreach ($events['results'] as $log) {
+//            dd($log);
+            $companySegment     = $this->companySegmentModel->getRepository()->find($log['object_id']);
+//            $companySegment     = $this->companySegmentModel->getRepository()->find($log->getObjectId());
+            $companySegmentName = 'Unknown Segment';
+            if ($companySegment) {
+                $companySegmentName = $companySegment->getName();
+            }
+            $eventName = $this->translator->trans('mautic.company_segments.timeline.segment.add', [
+                '%segment%' => $companySegmentName,
+            ]);
+
+            if ( !empty($action) && $action === 'removed') {
+                $eventName = $this->translator->trans('mautic.company_segments.timeline.segment.remove', [
+                    '%segment%' => $companySegmentName,
+                ]);
+            }
+
+
+            $eventSegmentLabelName = $this->translator->trans('mautic.company_segments.timeline.segment_label_name', [
+                '%segment%' => $companySegmentName,
+            ]);
+            $eventLabel = [
+                'label' => $eventSegmentLabelName,
+                'href'  => $this->router->generate(
+                    'mautic_company_segments_action',
+                    [
+                        'objectAction' => 'view',
+                        'objectId'     => $log['object_id'],
+                    ]
+                ),
+            ];
+//                            $event->addEvent(
+//                    [
+//                        'event'          => $eventType,
+//                        'eventId'        => $eventType.$event->getCompany()->getId(),
+//                        'icon'           => 'fa ri-fw ri-time-line',
+//                        'eventType'      => $eventName,
+//                        'eventLabel'     => $eventLabel,
+//                        'eventPriority'  => -5, // Usually something happened to create the lead so this should display afterward
+//                        'timestamp'      => $dateAdded,
+//                    ]
+//                );
+
+            $event->addEvent(
+                $this->getEventEntry($log, $eventType, $eventName, $icon, $contentTemplate,$eventLabel)
+            );
+        }
+    }
+
+    private function getEventEntry(array $log, string $eventType, $eventTypeName, $icon, $contentTemplate, $eventLabel = null): array
     {
         $properties = json_decode($log['properties'], true);
+        if($eventLabel === null) {
+            $eventLabel = $this->getSourceName($log, $eventType);
+        }
 
         $entry = [
             'event'      => $eventType,
             'eventId'    => $eventType.$log['id'],
             'eventType'  => $eventTypeName,
-            'eventLabel' => $this->getSourceName($log, $eventType),
+            'eventLabel' => $eventLabel,
             'timestamp'  => $log['date_added'],
             'icon'       => $icon,
             'contactId'  => $log['company_id'],

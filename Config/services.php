@@ -35,6 +35,11 @@ return function (ContainerConfigurator $configurator): void {
         MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel::class
     );
 
+    $services->alias(
+        'mautic.company_segments.model.company_event_log',
+        MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanyEventLogModel::class
+    );
+
     $services->set(CompanyModelDecorated::class)
         ->decorate(CompanyModel::class);
 };

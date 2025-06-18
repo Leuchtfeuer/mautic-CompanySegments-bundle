@@ -4,19 +4,36 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CoreBundle\Helper\UserHelper;
+use Mautic\CoreBundle\Model\FormModel;
+use Mautic\CoreBundle\Security\Permissions\CorePermissions;
+use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Company;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLog;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanyTimelineEvent;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Helper\SegmentCountCacheHelper;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\LeuchfeuerCompanySegmentsEvents;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Service\CompanySegmentService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-class CompanyEventLogModel
+class CompanyEventLogModel extends FormModel
 {
     public function __construct(
-        private EventDispatcherInterface $dispatcher,
-        private CoreParametersHelper $coreParametersHelper,
-        private EntityManagerInterface $em,
-    ) {
+        EntityManagerInterface $em,
+        CorePermissions $security,
+        EventDispatcherInterface $dispatcher,
+        UrlGeneratorInterface $router,
+        Translator $translator,
+        UserHelper $userHelper,
+        LoggerInterface $logger,
+        CoreParametersHelper $coreParametersHelper,
+
+    )
+    {
+        parent::__construct($em, $security, $dispatcher, $router, $translator, $userHelper, $logger, $coreParametersHelper);
     }
 
     /**
@@ -28,7 +45,6 @@ class CompanyEventLogModel
             new CompanyTimelineEvent($company, $filters, $orderBy, $page, $limit, $forTimeline, $this->coreParametersHelper->get('site_url')),
             LeuchfeuerCompanySegmentsEvents::TIMELINE_ON_GENERATE
         );
-
         $payload = [
             'events'   => $event->getEvents(),
             'filters'  => $filters,

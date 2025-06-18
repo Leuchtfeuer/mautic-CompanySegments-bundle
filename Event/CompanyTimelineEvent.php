@@ -217,35 +217,7 @@ class CompanyTimelineEvent extends Event
         }
 
         if (!empty($this->orderBy)) {
-            usort(
-                $events,
-                function ($a, $b) {
-                    switch ($this->orderBy[0]) {
-                        case 'eventLabel':
-                            $aLabel = '';
-                            if (isset($a['eventLabel'])) {
-                                $aLabel = (is_array($a['eventLabel'])) ? $a['eventLabel']['label'] : $a['eventLabel'];
-                            }
-
-                            $bLabel = '';
-                            if (isset($b['eventLabel'])) {
-                                $bLabel = (is_array($b['eventLabel'])) ? $b['eventLabel']['label'] : $b['eventLabel'];
-                            }
-
-                            return strnatcmp($aLabel, $bLabel);
-
-                        case 'timestamp':
-                            if ($a['timestamp'] == $b['timestamp']) {
-                                $aPriority = isset($a['eventPriority']) ? (int) $a['eventPriority'] : 0;
-                                $bPriority = isset($b['eventPriority']) ? (int) $b['eventPriority'] : 0;
-
-                                return $aPriority - $bPriority;
-                            }
-
-                            return $a['timestamp'] < $b['timestamp'] ? -1 : 1;
-                    }
-                }
-            );
+            usort($events, [$this, 'sortEvents']);
 
             if ('DESC' == $this->orderBy[1]) {
                 $events = array_reverse($events);
@@ -253,6 +225,35 @@ class CompanyTimelineEvent extends Event
         }
 
         return $events;
+    }
+
+    protected function sortEvents($a, $b)
+    {
+        switch ($this->orderBy[0]) {
+            case 'eventLabel':
+                $aLabel = '';
+                if (isset($a['eventLabel'])) {
+                    $aLabel = (is_array($a['eventLabel'])) ? $a['eventLabel']['label'] : $a['eventLabel'];
+                }
+
+                $bLabel = '';
+                if (isset($b['eventLabel'])) {
+                    $bLabel = (is_array($b['eventLabel'])) ? $b['eventLabel']['label'] : $b['eventLabel'];
+                }
+
+                return strnatcmp($aLabel, $bLabel);
+
+            case 'timestamp':
+                if ($a['timestamp'] == $b['timestamp']) {
+                    $aPriority = isset($a['eventPriority']) ? (int) $a['eventPriority'] : 0;
+                    $bPriority = isset($b['eventPriority']) ? (int) $b['eventPriority'] : 0;
+
+                    return $aPriority - $bPriority;
+                }
+
+                return $a['timestamp'] < $b['timestamp'] ? -1 : 1;
+        }
+        return 0;
     }
 
     /**

@@ -70,7 +70,7 @@ class AddRemoveCompanyEventLogSubscriber implements EventSubscriberInterface
             'company_segment_id'   => $companySegment->getId(),
             'company_segment_name' => $companySegment->getName(),
             'company_id'           => $company->getId(),
-            'object_description'   => $company->getName(),
+            'object_description'   => $companySegment->getName(),
         ]);
         $companyEventLog->setUserId($userId); // Set the user ID if available
         $companyEventLog->setUserName($userName); // or use the actual user name if available

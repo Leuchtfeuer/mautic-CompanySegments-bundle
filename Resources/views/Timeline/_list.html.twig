@@ -14,7 +14,7 @@
                 'text': 'mautic.lead.timeline.event_name',
                 'class': 'timeline-name',
                 'sessionVar': 'company.' ~ company.id ~ '.timeline',
-                'baseUrl': path('mautic_contacttimeline_action', {'leadId': company.id}),
+                'baseUrl': path('mautic_companytimeline_action', {'companyId': company.id}),
                 'target': '#timeline-table',
             }) }}
 
@@ -23,7 +23,7 @@
                 'text': 'mautic.lead.timeline.event_type',
                 'class': 'visible-md visible-lg timeline-type',
                 'sessionVar': 'company.' ~ company.id ~ '.timeline',
-                'baseUrl': path('mautic_contacttimeline_action', {'leadId': company.id}),
+                'baseUrl': path('mautic_companytimeline_action', {'companyId': company.id}),
                 'target': '#timeline-table',
             }) }}
 
@@ -32,7 +32,7 @@
                 'text': 'mautic.lead.timeline.event_timestamp',
                 'class': 'visible-md visible-lg timeline-timestamp',
                 'sessionVar': 'company.' ~ company.id ~ '.timeline',
-                'baseUrl': path('mautic_contacttimeline_action', {'leadId': company.id}),
+                'baseUrl': path('mautic_companytimeline_action', {'companyId': company.id}),
                 'target': '#timeline-table',
             }) }}
         </tr>
@@ -86,7 +86,7 @@
         'page': events.page,
         'fixedPages': events.maxPages,
         'fixedLimit': true,
-        'baseUrl': path('mautic_contacttimeline_action', {'leadId': company.id}),
+        'baseUrl': path('mautic_companytimeline_action', {'companyId': company.id}),
         'target': '#timeline-table',
         'totalItems': events.total,
 }) }}

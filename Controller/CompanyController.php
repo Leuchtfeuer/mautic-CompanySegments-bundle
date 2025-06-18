@@ -6,6 +6,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Factory\ModelFactory;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
+use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Helper\UserHelper;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use Mautic\CoreBundle\Service\FlashBag;
@@ -140,6 +141,26 @@ class CompanyController extends CompanyTagsController
         $leadIds = array_column($contacts, 'lead_id');
 
         $contacts = $this->getCompanyContacts($request, $objectId, 0, $leadIds);
+
+//        $this->setListFilters();
+//
+//        $session = $request->getSession();
+//
+//        if ('POST' == $request->getMethod() && $request->request->has('search')) {
+//            $filters = [
+//                'search' => InputHelper::clean($request->request->get('search')),
+//                'includeEvents' => InputHelper::clean($request->request->get('includeEvents') ?? []),
+//                'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents') ?? []),
+//            ];
+//            $session->set('mautic.company.' . $objectId . '.timeline.filters', $filters);
+//        } else {
+//            $filters = null;
+//        }
+//
+//        $order = [
+//            $session->get('mautic.company.' . $objectId . '.timeline.orderby'),
+//            $session->get('mautic.company.' . $objectId . '.timeline.orderbydir'),
+//        ];
 
         return $this->delegateView(
             [

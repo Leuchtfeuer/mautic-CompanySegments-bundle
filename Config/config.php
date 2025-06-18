@@ -23,10 +23,18 @@ return [
                 'path'       => '/company-segments/batch/company/view',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\BatchSegmentController::indexAction',
             ],
+            'mautic_companytimeline_action' => [
+                'path'         => '/companies/timeline/{companyId}/{page}',
+                'controller'   => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanyTimelineController::indexAction',
+                'requirements' => [
+                    'companyId' => '\d+',
+                ],
+            ],
             'mautic_company_action' => [
                 'path'       => '/companies/{objectAction}/{objectId}',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanyController::executeAction',
             ],
+
         ],
         'api' => [
             'mautic_api_companysegments' => [
