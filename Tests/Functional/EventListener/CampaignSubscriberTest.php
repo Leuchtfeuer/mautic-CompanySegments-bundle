@@ -271,6 +271,112 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
         self::assertCount(1, $totalCompaniesCompanySegmentAllAfter);
     }
 
+    public function testCompanySegmentAddActionWithLeadWithoutPrimaryCompany(): void
+    {
+        $this->activePlugin();
+        $leadJoeGlibi  = $this->createLead('joe@glibi.com', 'Joe');
+        $leadMaryGlibi = $this->createLead('mary@glibi.com', 'Mary');
+        $leadJohnTBS   = $this->createLead('mary@tbs.com', 'John');
+
+        $companyGlibi = $this->createCompany('Glibi');
+        $companyTBS   = $this->createCompany('TBS');
+
+        $companySegmentGlibi = $this->createCompanySegment('Company Glibi', 'company-glibi', true);
+        $companySegmentTBS   = $this->createCompanySegment('Company TBS', 'company-tbs', true);
+        $companySegmentAll   = $this->createCompanySegment('Company All', 'company-all', true);
+        $companySegmentEmpty = $this->createCompanySegment('Company Empty', 'company-empty', true);
+
+        $this->addCompanyToCompanySegment($companyGlibi, $companySegmentGlibi);
+        $this->addCompanyToCompanySegment($companyTBS, $companySegmentTBS);
+        $this->addCompanyToCompanySegment($companyGlibi, $companySegmentAll);
+        $this->addCompanyToCompanySegment($companyTBS, $companySegmentAll);
+
+        /**
+         * ADD event to Campaign
+         * ADD Modify Company Tags in Campaign.
+         */
+        $modifyCompSegmentsAction = $this->createEventModifyCompanySegment(
+            'Add Company Segment / Remove Segment2',
+            'company_segments.action.modify',
+            [
+                'addToLists'      => [$companySegmentEmpty->getId()],
+                'removeFromLists' => [$companySegmentAll->getId()],
+            ]
+        );
+
+        $totalCompaniesCompanySegmentGlibiBefore = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentGlibi]);
+        $totalCompaniesCompanySegmentEmptyBefore = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentEmpty]);
+        $totalCompaniesCompanySegmentAllBefore   = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentAll]);
+
+        self::assertEmpty($totalCompaniesCompanySegmentEmptyBefore);
+        self::assertCount(2, $totalCompaniesCompanySegmentAllBefore);
+        self::assertCount(1, $totalCompaniesCompanySegmentGlibiBefore);
+
+        $campaign = new Campaign();
+        $campaign->setName('Campaign A');
+        $campaign->addEvents([$modifyCompSegmentsAction]);
+
+        $modifyCompSegmentsAction->setCampaign($campaign);
+
+        $this->em->persist($campaign);
+        $this->em->flush();
+
+        $campaignLeadJoe  = $this->addLeadInCampaign($campaign, $leadJoeGlibi);
+        $campaignLeadMary = $this->addLeadInCampaign($campaign, $leadMaryGlibi);
+
+        $campaign->addLead(0, $campaignLeadJoe);
+        $campaign->addLead(1, $campaignLeadMary);
+        //        $campaign->addLead(2, $campaignLeadJohn);
+
+        $this->em->persist($modifyCompSegmentsAction);
+        $this->em->persist($campaignLeadJoe);
+        $this->em->persist($campaignLeadMary);
+        //        $this->em->persist($campaignLeadJohn);
+        $this->em->persist($campaign);
+        $this->em->flush();
+
+        $campaign->setCanvasSettings(
+            [
+                'nodes' => [
+                    [
+                        'id'        => $modifyCompSegmentsAction->getId(),
+                        'positionX' => '1080',
+                        'positionY' => '155',
+                    ],
+                    [
+                        'id'        => 'lists',
+                        'positionX' => '1180',
+                        'positionY' => '50',
+                    ],
+                ],
+                'connections' => [
+                    [
+                        'sourceId' => 'lists',
+                        'targetId' => $modifyCompSegmentsAction->getId(),
+                        'anchors'  => [
+                            [
+                                'endpoint' => 'leadsource',
+                                'eventId'  => 'lists',
+                            ],
+                            [
+                                'endpoint' => 'top',
+                                'eventId'  => $modifyCompSegmentsAction->getId(),
+                            ],
+                        ],
+                    ],
+                ],
+            ]
+        );
+        $this->em->persist($campaign);
+        $this->em->flush();
+
+        $this->testSymfonyCommand('mautic:campaigns:trigger', ['-i' => $campaign->getId()]);
+
+        $this->client->request('GET', '/s/contacts/timeline/'.$leadJoeGlibi->getId());
+
+        self::assertStringNotContainsString('ri-alert-line text-danger', $this->client->getResponse()->getContent());
+    }
+
     public function testCompanySegmentAddCondition(): void
     {
         $this->activePlugin();
