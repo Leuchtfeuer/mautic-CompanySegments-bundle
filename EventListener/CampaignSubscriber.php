@@ -68,7 +68,7 @@ class CampaignSubscriber implements EventSubscriberInterface
 
         $primaryCompany    = $lead->getPrimaryCompany();
 
-        if (null === $primaryCompany) {
+        if (null === $primaryCompany || '' === $primaryCompany || 0 === $lead->getId()) {
             return $event->setResult(true);
         }
 
