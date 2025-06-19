@@ -220,6 +220,7 @@ jobs:
 
       - name: Run ${{ matrix.commands }}
         run: |
+          php bin/console mautic:plugins:install --env=dev
           if [[ "${{ matrix.commands }}" == "PHPStan" ]]; then 
             composer remove --dev rector/rector
             rm rector.php
