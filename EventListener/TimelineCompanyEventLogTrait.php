@@ -6,7 +6,6 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanyTimelineEvent;
 
 trait TimelineCompanyEventLogTrait
 {
-
     private function addEvents(CompanyTimelineEvent $event, $eventType, $eventTypeName, $icon, $bundle = null, $object = null, $action = null, $contentTemplate = null): void
     {
         $eventTypeName = $this->translator->trans($eventTypeName);

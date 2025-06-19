@@ -7,7 +7,6 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanyEventLogModel;
 
 trait CompanyDetailsTrait
 {
-
     /**
      * @param int $page
      * @param int $limit
