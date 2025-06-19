@@ -34,7 +34,6 @@ return [
                 'path'       => '/companies/{objectAction}/{objectId}',
                 'controller' => 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanyController::executeAction',
             ],
-
         ],
         'api' => [
             'mautic_api_companysegments' => [

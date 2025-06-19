@@ -177,24 +177,7 @@
             </div>
         </div>
         <!-- contacts section -->
-{#        <div class="pa-md enage">#}
-{#            <div class="row">#}
-{#                <div class="col-sm-12">#}
-{#                    <div id="contacts-table">#}
-{#                        {{ include('@MauticLead/Company/list_rows_contacts.html.twig', {#}
-{#                                'contacts': items,#}
-{#                                'company': company,#}
-{#                                'tmpl': 'index',#}
-{#                                'permissions': permissions,#}
-{#                                'security': security,#}
-{#                                'page': page,#}
-{#                                'limit': limit,#}
-{#                                'totalItems': totalItems,#}
-{#                        }) }}#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
+
 
         <!--/ contacts section -->
         <div class="pa-md">
@@ -210,9 +193,9 @@
                 </li>
                 <li>
                     <a href="#contacts-container" role="tab" data-toggle="tab">
-{#                        <span size="sm" class="label label-primary mr-sm" id="ContactsCount">#}
-{#                            #}
-{#                        </span>#}
+                        <span size="sm" class="label label-primary mr-sm" id="ContactsCount">
+                            {{ totalItems }}
+                        </span>
                         Contacts
                     </a>
                 </li>

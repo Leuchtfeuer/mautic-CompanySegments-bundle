@@ -3,7 +3,6 @@
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller;
 
 use Mautic\LeadBundle\Entity\Company;
-use Mautic\LeadBundle\Entity\Lead;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanyEventLogModel;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -31,7 +30,7 @@ trait CompanyAccessTrait
             if (method_exists($this, 'postActionRedirect')) {
                 // set the return URL
                 $page      = $this->getCurrentRequest()->getSession()->get($isPlugin ? 'mautic.'.$integration.'.page' : 'mautic.company.page', 1);
-                $returnUrl = $this->generateUrl($isPlugin ? 'mautic_plugin_timeline_index' : 'mautic_contact_index', ['page' => $page]);
+                $returnUrl = $this->generateUrl($isPlugin ? 'mautic_plugin_timeline_index' : 'mautic_company_index', ['page' => $page]);
 
                 return $this->postActionRedirect(
                     [
@@ -39,7 +38,7 @@ trait CompanyAccessTrait
                         'viewParameters'  => ['page' => $page],
                         'contentTemplate' => $isPlugin ? 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanyTimelineController::pluginIndexAction' : 'MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller\CompanyController::indexAction',
                         'passthroughVars' => [
-                            'activeLink'    => $isPlugin ? '#mautic_plugin_timeline_index' : '#mautic_contact_index',
+                            'activeLink'    => $isPlugin ? '#mautic_plugin_timeline_index' : '#mautic_company_index',
                             'mauticContent' => 'CompanyTimeline',
                         ],
                         'flashes' => [

@@ -227,7 +227,7 @@ class CompanyTimelineEvent extends Event
         return $events;
     }
 
-    protected function sortEvents($a, $b)
+    protected function sortEvents($a, $b): int
     {
         switch ($this->orderBy[0]) {
             case 'eventLabel':
@@ -253,6 +253,7 @@ class CompanyTimelineEvent extends Event
 
                 return $a['timestamp'] < $b['timestamp'] ? -1 : 1;
         }
+
         return 0;
     }
 

@@ -142,26 +142,6 @@ class CompanyController extends CompanyTagsController
 
         $contacts = $this->getCompanyContacts($request, $objectId, 0, $leadIds);
 
-//        $this->setListFilters();
-//
-//        $session = $request->getSession();
-//
-//        if ('POST' == $request->getMethod() && $request->request->has('search')) {
-//            $filters = [
-//                'search' => InputHelper::clean($request->request->get('search')),
-//                'includeEvents' => InputHelper::clean($request->request->get('includeEvents') ?? []),
-//                'excludeEvents' => InputHelper::clean($request->request->get('excludeEvents') ?? []),
-//            ];
-//            $session->set('mautic.company.' . $objectId . '.timeline.filters', $filters);
-//        } else {
-//            $filters = null;
-//        }
-//
-//        $order = [
-//            $session->get('mautic.company.' . $objectId . '.timeline.orderby'),
-//            $session->get('mautic.company.' . $objectId . '.timeline.orderbydir'),
-//        ];
-
         return $this->delegateView(
             [
                 'viewParameters' => [

@@ -11,12 +11,9 @@ use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Company;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanyEventLog;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanyTimelineEvent;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Helper\SegmentCountCacheHelper;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\LeuchfeuerCompanySegmentsEvents;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Service\CompanySegmentService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class CompanyEventLogModel extends FormModel
@@ -30,9 +27,7 @@ class CompanyEventLogModel extends FormModel
         UserHelper $userHelper,
         LoggerInterface $logger,
         CoreParametersHelper $coreParametersHelper,
-
-    )
-    {
+    ) {
         parent::__construct($em, $security, $dispatcher, $router, $translator, $userHelper, $logger, $coreParametersHelper);
     }
 

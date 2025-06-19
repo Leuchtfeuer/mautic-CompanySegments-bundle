@@ -3,21 +3,16 @@
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Controller;
 
 use Mautic\LeadBundle\Entity\Company;
-use Mautic\LeadBundle\Entity\Lead;
-use Mautic\LeadBundle\Model\LeadModel;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanyEventLogModel;
-use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanyModelDecorated;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 trait CompanyDetailsTrait
 {
-//    private ?RequestStack $requestStack = null;
 
     /**
      * @param int $page
      * @param int $limit
      */
-    protected function getEngagements(Company $company, array $filters = null, array $orderBy = null, $page = 1, $limit = 25): array
+    protected function getEngagements(Company $company, ?array $filters = null, ?array $orderBy = null, $page = 1, $limit = 25): array
     {
         $session = $this->requestStack->getCurrentRequest()->getSession();
 
@@ -52,7 +47,7 @@ trait CompanyDetailsTrait
     /**
      * @param int $page
      */
-    protected function getAllEngagements(array $companies, array $filters = null, array $orderBy = null, $page = 1, $limit = 25): array
+    protected function getAllEngagements(array $companies, ?array $filters = null, ?array $orderBy = null, $page = 1, $limit = 25): array
     {
         $session = $this->requestStack->getCurrentRequest()->getSession();
 
