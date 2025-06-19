@@ -51,7 +51,7 @@ class CompanyTimelineController extends CommonController
         $this->requestStack = $requestStack;
     }
 
-    public function indexAction(Request $request, $companyId, $page = 1)
+    public function indexAction(Request $request, ?string $companyId, $page = 1)
     {
         if (empty($companyId)) {
             return $this->accessDenied();
@@ -161,7 +161,7 @@ class CompanyTimelineController extends CommonController
         );
     }
 
-    public function pluginViewAction(Request $request, $integration, $companyId, $page = 1)
+    public function pluginViewAction(Request $request, $integration, ?string $companyId, $page = 1)
     {
         if (empty($companyId)) {
             return $this->notFound();

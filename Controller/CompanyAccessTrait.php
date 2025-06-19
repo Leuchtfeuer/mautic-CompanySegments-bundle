@@ -15,7 +15,7 @@ trait CompanyAccessTrait
      *
      * @return Response|Company
      */
-    protected function checkLeadAccess($companyId, $action, $isPlugin = false, $integration = '')
+    protected function checkLeadAccess($companyId, string $action, $isPlugin = false, string $integration = '')
     {
         if (!$companyId instanceof Company) {
             // make sure the user has view access to this company
@@ -70,7 +70,7 @@ trait CompanyAccessTrait
      *
      * @return array|\Symfony\Component\HttpFoundation\RedirectResponse
      */
-    protected function checkAllAccess($action, $limit)
+    protected function checkAllAccess(string $action, $limit)
     {
         /** @var CompanyEventLogModel $model */
         $model = $this->getModel('company_segments.company_event_log');
