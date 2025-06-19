@@ -161,7 +161,7 @@ class CompanyTimelineController extends CommonController
         );
     }
 
-    public function pluginViewAction(Request $request, $integration, ?string $companyId, $page = 1)
+    public function pluginViewAction(Request $request, string $integration, ?string $companyId, $page = 1)
     {
         if (empty($companyId)) {
             return $this->notFound();
