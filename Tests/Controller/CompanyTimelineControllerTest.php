@@ -49,20 +49,6 @@ class CompanyTimelineControllerTest extends MauticMysqlTestCase
         self::assertStringContainsString('Company event log not found for company', $this->client->getResponse()->getContent());
     }
 
-    public function testIndexActionsWithCompanyEvents(): void
-    {
-        //        $this->activePlugin(true);
-        //        $structure = $this->createStructure();
-        //        $company = $structure['companies']['glibi'];
-        //
-        //        $this->client->request('GET', '/s/companies/timeline/' . $company->getId());
-        //        self::assertEquals(200, $this->client->getResponse()->getStatusCode());
-        //
-        //        $crawler = $this->client->getCrawler();
-        //        self::assertStringContainsString('Company Glibi', $crawler->text());
-        //        self::assertStringContainsString('Company Segment Glibi', $crawler->text());
-    }
-
     /**
      * @param array<string, mixed> $properties
      */
