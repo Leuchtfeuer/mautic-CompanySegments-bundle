@@ -182,7 +182,6 @@ class CompanySegmentController extends AbstractStandardFormController
                 $model->setSegmentCompanyCountInCache([$id]);
             }
         }
-
     }
 
     /**
