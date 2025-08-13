@@ -57,7 +57,7 @@ To update the Company Segments based on their filter, there is a console command
 
 Event Log is created for each Segment updated in the Company Segments view.
 
-Audit aog is created for each Company Segment created, updated or deleted.
+Audit log is created for each Company Segment created, updated or deleted.
 
 ## API
 
