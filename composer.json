@@ -1,15 +1,19 @@
 {
     "name": "leuchtfeuer/mautic-companysegments-bundle",
     "description": "Provide a 2nd type of Segments which can contain Companies (and allows segment filters)",
-    "license": "GPL-3.0",
+    "license": "GPL-3.0-or-later",
     "type": "mautic-plugin",
     "homepage": "https://www.Leuchtfeuer.com",
     "minimum-stability": "dev",
     "prefer-stable": true,
     "authors": [{
         "name": "Leuchtfeuer Digital Marketing GmbH",
-        "email": "mautic-plugins@Leuchtfeuer.com"
+        "email": "mautic-plugins@Leuchtfeuer.com",
+        "homepage": "https://Leuchtfeuer.com/mautic/",
+        "role": "Developer"
     }],
+    "keywords": ["mautic","plugin","integration","segments", "company"],
+
     "require": {
         "php": "^8.0",
         "ext-json": "*",

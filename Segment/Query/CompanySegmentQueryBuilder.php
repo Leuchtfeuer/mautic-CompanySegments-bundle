@@ -86,6 +86,71 @@ class CompanySegmentQueryBuilder
     }
 
     /**
+     * @throws SegmentQueryException
+     */
+    public function assembleCompaniesSegmentQueryBuilderLeadSegment(CompanySegment $companySegment, ContactSegmentFilters $segmentFilters, bool $changeAlias = false): QueryBuilder
+    {
+        $connection = $this->entityManager->getConnection();
+        if ($connection instanceof PrimaryReadReplicaConnection) {
+            // Prefer a replica connection if available.
+            $connection->ensureConnectedToReplica();
+        }
+
+        $queryBuilder = new QueryBuilder($connection);
+
+        $companyTableAlias = $changeAlias ? $this->generateRandomParameterName() : $this->companyRepository->getTableAlias();
+
+        $leadTableAlias           = $this->generateRandomParameterName();
+        $companyLeadsTableAlias   = $this->generateRandomParameterName();
+        $companySegmentTableAlias = $this->generateRandomParameterName();
+        $queryBuilder->select($leadTableAlias.'.id')->from(MAUTIC_TABLE_PREFIX.'leads', $leadTableAlias)
+            ->join(
+                $leadTableAlias,
+                MAUTIC_TABLE_PREFIX.'companies_leads',
+                $companyLeadsTableAlias,
+                $companyLeadsTableAlias.'.lead_id = '.$leadTableAlias.'.id and '.$companyLeadsTableAlias.'.is_primary = 1'
+            )->join(
+                $companyLeadsTableAlias,
+                MAUTIC_TABLE_PREFIX.'companies',
+                $companyTableAlias,
+                $companyTableAlias.'.id = '.$companyLeadsTableAlias.'.company_id'
+            )->join(
+                $companyTableAlias,
+                MAUTIC_TABLE_PREFIX.'companies_segments',
+                $companySegmentTableAlias,
+                $companySegmentTableAlias.'.segment_id = '.$companySegment->getId().' and '.$companySegmentTableAlias.'.manually_removed = 0',
+            );
+
+        /*
+         * Validate the plan, check for circular dependencies.
+         *
+         * the bigger count($plan), the higher complexity of query
+         */
+        $this->getResolutionPlan($companySegment);
+
+        $params     = $queryBuilder->getParameters();
+        $paramTypes = $queryBuilder->getParameterTypes();
+
+        /** @var ContactSegmentFilter $filter */
+        foreach ($segmentFilters as $filter) {
+            if ($this->dispatchPluginFilteringEvent($filter, $queryBuilder)) {
+                continue;
+            }
+
+            $queryBuilder = $filter->applyQuery($queryBuilder);
+            // We need to collect params between union queries in this iteration,
+            // because they are overwritten by new union query build
+            $params     = array_merge($params, $queryBuilder->getParameters());
+            $paramTypes = array_merge($paramTypes, $queryBuilder->getParameterTypes());
+        }
+
+        $queryBuilder->setParameters($params, $paramTypes);
+        $queryBuilder->applyStackLogic();
+
+        return $queryBuilder;
+    }
+
+    /**
      * @throws \Doctrine\DBAL\Exception
      */
     public function wrapInCount(QueryBuilder $qb): QueryBuilder
@@ -306,7 +371,6 @@ class CompanySegmentQueryBuilder
         }
 
         $edges = $this->dependencyMap[$companySegmentId];
-
         foreach ($edges as $edge) {
             if (!in_array($edge, $resolved, true)) {
                 if (in_array($edge, $seen, true)) {

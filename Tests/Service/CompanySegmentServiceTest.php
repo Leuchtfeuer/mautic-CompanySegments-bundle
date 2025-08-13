@@ -129,7 +129,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         $companySegmentManualName = $companySegmentManual->getName();
         self::assertNotNull($companySegmentManualName);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
-        self::assertStringContainsString('No Companies', $rows->eq(0)->filter('td')->eq(2)->text());
+        self::assertStringContainsString('View 2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
         self::assertStringContainsString($companySegmentName, $rows->eq(2)->filter('td')->eq(1)->text());
@@ -389,7 +389,7 @@ class CompanySegmentServiceTest extends MauticMysqlTestCase
         $companySegmentManualName = $companySegmentManual->getName();
         self::assertNotNull($companySegmentManualName);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
-        self::assertStringContainsString('No Companies', $rows->eq(0)->filter('td')->eq(2)->text());
+        self::assertStringContainsString('View 2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
         $companySegmentName = $companySegment->getName();
         self::assertNotNull($companySegmentName);
         self::assertStringContainsString($companySegmentName, $rows->eq(2)->filter('td')->eq(1)->text());

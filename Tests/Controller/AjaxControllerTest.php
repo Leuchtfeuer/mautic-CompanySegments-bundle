@@ -14,6 +14,7 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\DataFixtures\ORM\LoadCompanySe
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegmentsRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegment;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Helper\SegmentCountCacheHelper;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Tests\MauticMysqlTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -95,7 +96,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         $companySegmentManualName = $companySegmentManual->getName();
         self::assertNotNull($companySegmentManualName);
         self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
-        self::assertStringContainsString('No Companies', $rows->eq(0)->filter('td')->eq(2)->text());
+        self::assertStringContainsString('View 2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
         $companySegmentFilteredName = $companySegmentFiltered->getName();
         self::assertNotNull($companySegmentFilteredName);
         self::assertStringContainsString($companySegmentFilteredName, $rows->eq(1)->filter('td')->eq(1)->text());
@@ -106,7 +107,7 @@ class AjaxControllerTest extends MauticMysqlTestCase
         self::assertStringContainsString('No Companies', $rows->eq(2)->filter('td')->eq(2)->text());
 
         // test ajax
-        $this->checkGetCompaniesCountAjaxRequest($companySegmentManual, 'No Companies', 0);
+        $this->checkGetCompaniesCountAjaxRequest($companySegmentManual, 'View 2 Companies', 2);
         $this->checkGetCompaniesCountAjaxRequest($companySegmentFiltered, 'No Companies', 0);
         $this->checkGetCompaniesCountAjaxRequest($companySegmentDependent, 'No Companies', 0);
 
@@ -146,8 +147,78 @@ class AjaxControllerTest extends MauticMysqlTestCase
         self::assertIsArray($content);
         self::assertArrayHasKey('html', $content);
         self::assertArrayHasKey('companyCount', $content);
-
         self::assertSame($html, $content['html']);
         self::assertSame($companiesCount, $content['companyCount']);
+    }
+
+    public function testCheckIfCompanyCountRebuildAfterNoCache(): void
+    {
+        $this->loadFixtures([LoadCompanyData::class, LoadCompanySegmentData::class, LoadUserData::class, LoadRoleData::class]);
+        $companySegmentManual        = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_NO_FILTERS);
+        $companiesSegmentsRepository = static::getContainer()->get(CompaniesSegmentsRepository::class);
+        \assert($companiesSegmentsRepository instanceof CompaniesSegmentsRepository);
+
+        $company           = $this->getCompany('company-1');
+        $companiesSegments = new CompaniesSegments();
+        $companiesSegments->setCompanySegment($companySegmentManual);
+        $companiesSegments->setCompany($company);
+        $companiesSegments->setManuallyAdded(true);
+        $companiesSegments->setDateAdded(new \DateTime());
+        $companiesSegmentsRepository->saveEntity($companiesSegments);
+        $companySegmentManual->addCompaniesSegment($companiesSegments);
+
+        $company2          = $this->getCompany('company-2');
+        $companiesSegments = new CompaniesSegments();
+        $companiesSegments->setCompanySegment($companySegmentManual);
+        $companiesSegments->setCompany($company2);
+        $companiesSegments->setManuallyAdded(true);
+        $companiesSegments->setDateAdded(new \DateTime());
+        $companiesSegmentsRepository->saveEntity($companiesSegments);
+        $companySegmentManual->addCompaniesSegment($companiesSegments);
+        $companySegmentModel = static::getContainer()->get(CompanySegmentModel::class);
+        \assert($companySegmentModel instanceof CompanySegmentModel);
+        $companySegmentModel->saveEntity($companySegmentManual);
+        self::assertCount(2, $companySegmentManual->getCompaniesSegments());
+
+        $companySegmentFiltered = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_FILTER_REVENUE);
+        $company->addUpdatedField('companyannual_revenue', '123456');
+        $companyModel = static::getContainer()->get(CompanyModel::class);
+        \assert($companyModel instanceof CompanyModel);
+        $companyModel->saveEntity($company);
+
+        self::assertCount(0, $companySegmentFiltered->getCompaniesSegments(), 'Check that there are no aut-saving to the cache.');
+        $companySegmentDependent = $this->getCompanySegment(LoadCompanySegmentData::COMPANY_SEGMENT_DEPENDENT);
+        self::assertCount(0, $companySegmentDependent->getCompaniesSegments());
+        // Though the DB contains "proper" counts of companies in segments, the command need to be executed to fill in the cache.
+        $crawler = $this->client->request(Request::METHOD_GET, '/s/company-segments');
+        self::assertResponseIsSuccessful();
+        $rows = $crawler->filter('#companySegmentsTable > tbody > tr');
+        self::assertCount(3, $rows);
+        $companySegmentManualName = $companySegmentManual->getName();
+        self::assertNotNull($companySegmentManualName);
+        self::assertStringContainsString($companySegmentManualName, $rows->eq(0)->filter('td')->eq(1)->text());
+        self::assertStringContainsString('View 2 Companies', $rows->eq(0)->filter('td')->eq(2)->text());
+        $companySegmentFilteredName = $companySegmentFiltered->getName();
+        self::assertNotNull($companySegmentFilteredName);
+        self::assertStringContainsString($companySegmentFilteredName, $rows->eq(1)->filter('td')->eq(1)->text());
+        self::assertStringContainsString('No Companies', $rows->eq(1)->filter('td')->eq(2)->text());
+        $companySegmentDependentName = $companySegmentDependent->getName();
+        self::assertNotNull($companySegmentDependentName);
+        self::assertStringContainsString($companySegmentDependentName, $rows->eq(2)->filter('td')->eq(1)->text());
+        self::assertStringContainsString('No Companies', $rows->eq(2)->filter('td')->eq(2)->text());
+        // test ajax
+        $this->checkGetCompaniesCountAjaxRequest($companySegmentManual, 'View 2 Companies', 2);
+        $this->checkGetCompaniesCountAjaxRequest($companySegmentFiltered, 'No Companies', 0);
+        $this->checkGetCompaniesCountAjaxRequest($companySegmentDependent, 'No Companies', 0);
+
+        $segmentCountHelper = self::getContainer()->get(SegmentCountCacheHelper::class);
+        \assert($segmentCountHelper instanceof SegmentCountCacheHelper);
+        self::assertIsInt($companiesSegments->getCompanySegment()->getId());
+        $hasCache = $companySegmentModel->hasSegmentCompanyCountInCache($companiesSegments->getCompanySegment()->getId());
+        self::assertTrue($hasCache, 'Check that the cache is not empty');
+        $segmentCountHelper->invalidateSegmentCompanyCount($companiesSegments->getCompanySegment()->getId());
+        $hasCache = $companySegmentModel->hasSegmentCompanyCountInCache($companiesSegments->getCompanySegment()->getId());
+        self::assertFalse($hasCache, 'Check that the cache is empty');
+        $this->checkGetCompaniesCountAjaxRequest($companySegmentManual, 'View 2 Companies', 2);
     }
 }

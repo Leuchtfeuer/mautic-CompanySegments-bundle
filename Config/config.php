@@ -3,7 +3,7 @@
 return [
     'name'        => 'Company Segments by Leuchtfeuer',
     'description' => 'Provide a 2nd type of Segments which can contain Companies (and allows segment filters).',
-    'version'     => '1.2.0',
+    'version'     => '1.2.1',
     'author'      => 'Leuchtfeuer Digital Marketing GmbH',
     'routes'      => [
         'main' => [

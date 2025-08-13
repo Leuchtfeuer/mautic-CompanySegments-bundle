@@ -137,6 +137,7 @@ class CompanySegmentController extends AbstractStandardFormController
 
         /** @var array<int, int> $companySegmentIds */
         $companySegmentIds = array_keys(iterator_to_array($items->getIterator()));
+        $this->updateCountCompaniesCache($companySegmentIds);
         $companyCounts     = $model->getSegmentCompanyCountFromCache($companySegmentIds);
 
         $parameters = [
@@ -167,6 +168,20 @@ class CompanySegmentController extends AbstractStandardFormController
                 'index'
             )
         );
+    }
+
+    /**
+     * @param array<int, int> $companySegmentIds
+     */
+    private function updateCountCompaniesCache(array $companySegmentIds): void
+    {
+        $model = $this->getModel(CompanySegmentModel::class);
+        \assert($model instanceof CompanySegmentModel);
+        foreach ($companySegmentIds as $id) {
+            if (!$model->hasSegmentCompanyCountInCache($id)) {
+                $model->setSegmentCompanyCountInCache([$id]);
+            }
+        }
     }
 
     /**

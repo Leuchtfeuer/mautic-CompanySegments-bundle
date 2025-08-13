@@ -80,6 +80,10 @@ class AjaxController extends CommonAjaxController
             return new JsonResponse($this->prepareJsonResponse(0), Response::HTTP_NOT_FOUND);
         }
 
+        if (!$companySegmentModel->hasSegmentCompanyCountInCache($id)) {
+            $companySegmentModel->setSegmentCompanyCountInCache([$id]);
+        }
+
         $companyCounts = $companySegmentModel->getSegmentCompanyCountFromCache([$id]);
         $companyCount  = $companyCounts[$id];
 
