@@ -15,6 +15,7 @@ use Mautic\LeadBundle\Event\FormAdjustmentEvent;
 use Mautic\LeadBundle\Event\ListFieldChoicesEvent;
 use Mautic\LeadBundle\Exception\ChoicesNotFoundException;
 use Mautic\LeadBundle\LeadEvents;
+use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\LeadBundle\Model\ListModel;
 use Mautic\LeadBundle\Provider\FieldChoicesProviderInterface;
@@ -68,6 +69,11 @@ class TypeOperatorSubscriberTest extends TestCase
 
     private \Mautic\LeadBundle\EventListener\TypeOperatorSubscriber $typeOperatorSubscriber;
 
+    /**
+     * @var MockObject&CompanyModel
+     */
+    private CompanyModel $companyModel;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -78,6 +84,7 @@ class TypeOperatorSubscriberTest extends TestCase
         $this->fieldChoicesProvider   = $this->createMock(FieldChoicesProviderInterface::class);
         $this->translator             = $this->createMock(TranslatorInterface::class);
         $this->form                   = $this->createMock(FormInterface::class);
+        $this->companyModel           = $this->createMock(CompanyModel::class);
         $this->typeOperatorSubscriber = new \Mautic\LeadBundle\EventListener\TypeOperatorSubscriber(
             $this->createMock(LeadModel::class),
             $this->createMock(ListModel::class),
@@ -86,7 +93,7 @@ class TypeOperatorSubscriberTest extends TestCase
             $this->createMock(StageModel::class),
             $this->createMock(CategoryModel::class),
             $this->createMock(AssetModel::class),
-            $this->translator
+            $this->translator,
         );
 
         $this->subscriber = new TypeOperatorSubscriber(
@@ -95,7 +102,8 @@ class TypeOperatorSubscriberTest extends TestCase
             $this->companySegmentModel,
             $this->typeOperatorProvider,
             $this->fieldChoicesProvider,
-            $this->translator
+            $this->translator,
+            $this->companyModel,
         );
     }
 
@@ -110,7 +118,7 @@ class TypeOperatorSubscriberTest extends TestCase
                 ['id' => 37, 'name' => 'Company B'],
             ]);
 
-        $this->subscriber->onTypeListCollect($event);
+        $this->subscriber->onCompanySegmentTypeListCollect($event);
 
         $choicesForAliases = $event->getChoicesForAllListFieldAliases();
         $choicesForTypes   = $event->getChoicesForAllListFieldTypes();
@@ -215,7 +223,7 @@ class TypeOperatorSubscriberTest extends TestCase
                 ]
             );
 
-        $this->subscriber->onGenerateSegmentFiltersAddCustomFields($event);
+        $this->subscriber->onUpdateGenerateFieldsWithDefaultLeadFieldsToCompanySegment($event);
 
         self::assertSame(
             [
@@ -273,7 +281,7 @@ class TypeOperatorSubscriberTest extends TestCase
                 ]
             );
 
-        $this->subscriber->onGenerateSegmentFiltersAddCustomFields($event);
+        $this->subscriber->onUpdateGenerateFieldsWithDefaultLeadFieldsToCompanySegment($event);
 
         self::assertSame(
             [
@@ -333,7 +341,7 @@ class TypeOperatorSubscriberTest extends TestCase
                 ]
             );
 
-        $this->subscriber->onGenerateSegmentFiltersAddCustomFields($event);
+        $this->subscriber->onUpdateGenerateFieldsWithDefaultLeadFieldsToCompanySegment($event);
 
         self::assertSame(
             [
@@ -388,7 +396,7 @@ class TypeOperatorSubscriberTest extends TestCase
             ->with('text')
             ->willThrowException(new ChoicesNotFoundException());
 
-        $this->subscriber->onGenerateSegmentFiltersAddCustomFields($event);
+        $this->subscriber->onUpdateGenerateFieldsWithDefaultLeadFieldsToCompanySegment($event);
 
         self::assertSame(
             [
@@ -425,6 +433,16 @@ class TypeOperatorSubscriberTest extends TestCase
                 ],
             ],
         ];
+        $field = new LeadField();
+        $field->setType('country');
+        $field->setObject('company_segments');
+        $field->setLabel('Company Segment');
+        $field->setAlias('company_segments');
+
+        $this->leadFieldRepository->expects(self::once())
+            ->method('getListablePublishedFields')
+            ->willReturn(new ArrayCollection([$field]));
+
         $event = new CompanySegmentFiltersChoicesEvent($choices, [], $this->translator, $request);
 
         $this->typeOperatorProvider
@@ -473,10 +491,10 @@ class TypeOperatorSubscriberTest extends TestCase
             ->method('trans')
             ->willReturnArgument(0);
 
-        $this->subscriber->onGenerateSegmentFiltersAddStaticFields($event);
+        $this->subscriber->onUpdateGenerateFieldsWithDefaultLeadFieldsToCompanySegment($event);
 
         $choices = $event->getChoices();
-
+        dd($choices);
         self::assertCount(1, $choices['company_segments']);
 
         // Test for some random choices:
@@ -533,17 +551,20 @@ class TypeOperatorSubscriberTest extends TestCase
     public function testSubscribedEvents(): void
     {
         self::assertSame([
-            LeadEvents::COLLECT_FILTER_CHOICES_FOR_LIST_FIELD_TYPE => ['onTypeListCollect', 0],
+            LeadEvents::COLLECT_FILTER_CHOICES_FOR_LIST_FIELD_TYPE => [
+                ['onCompanySegmentTypeListCollect', 0],
+                ['onCompaniesTypeListCollect', 0]
+            ],
             LeadEvents::ADJUST_FILTER_FORM_TYPE_FOR_FIELD          => [
                 ['onSegmentFilterFormHandleSelect', 400],
             ],
             CompanySegmentFiltersChoicesEvent::class => [
-                ['onGenerateSegmentFiltersAddStaticFields', 0],
-                ['onGenerateSegmentFiltersAddCustomFields', 0],
+                ['onGenerateCompanySegmentStaticFields', 0],
+                ['onUpdateGenerateFieldsWithDefaultLeadFieldsToCompanySegment', 0],
             ],
             LeadEvents::LIST_FILTERS_CHOICES_ON_GENERATE => [
-                ['updateGenerateSegmentFiltersAddStaticFieldsToLeadSegment', 0],
-                ['updateGenerateSegmentFiltersAddCustomFieldsToLeadSegment', 0],
+                ['updateGenerateSegmentFiltersAddStaticFields', 0],
+                ['onUpdateGenerateFieldsWithDefaultLeadFieldsToLeadSegment', 0],
             ],
         ], TypeOperatorSubscriber::getSubscribedEvents());
     }

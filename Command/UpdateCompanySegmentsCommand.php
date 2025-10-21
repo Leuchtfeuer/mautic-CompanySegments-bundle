@@ -110,7 +110,9 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
         }
 
         if (null !== $id) {
-            assert(is_int($id));
+//            dump($id);
+//            assert(is_int($id));
+
             $segment = $this->companySegmentModel->getEntity($id);
             assert($segment instanceof CompanySegment);
 
@@ -119,7 +121,6 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
 
                 return Command::FAILURE;
             }
-
             $this->rebuildSegment($segment, $batch, $max, $output);
         } else {
             $filter = [

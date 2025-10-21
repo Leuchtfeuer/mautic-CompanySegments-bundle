@@ -221,6 +221,7 @@ class CompanySegmentService
      */
     private function getNewSegmentContactsQuery(CompanySegment $segment, array $batchLimiters = [], bool $addNewContactsRestrictions = true): QueryBuilder
     {
+        dump('getNewSegmentContactsQuery');
         $contactSegment = new CompanySegmentAsLeadSegment($segment);
         $queryBuilder   = $this->companySegmentQueryBuilder->assembleCompaniesSegmentQueryBuilder(
             $segment,

@@ -8,6 +8,8 @@ use Doctrine\DBAL\Connections\PrimaryReadReplicaConnection;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\EntityManager;
 use Mautic\LeadBundle\Entity\CompanyRepository;
+use Mautic\LeadBundle\Model\CompanyModel;
+use Mautic\LeadBundle\Model\LeadModel;
 use Mautic\LeadBundle\Segment\ContactSegmentFilter;
 use Mautic\LeadBundle\Segment\ContactSegmentFilters;
 use Mautic\LeadBundle\Segment\Query\QueryBuilder;
@@ -19,6 +21,7 @@ use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentFilteringE
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Event\CompanySegmentQueryBuilderGeneratedEvent;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Exception\SegmentQueryException;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
+use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Segment\Query\Filter\SegmentReferenceFilterQueryBuilder;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class CompanySegmentQueryBuilder
@@ -37,6 +40,7 @@ class CompanySegmentQueryBuilder
         private RandomParameterName $randomParameterName,
         private EventDispatcherInterface $dispatcher,
         private \Psr\Log\LoggerInterface $logger,
+        private CompanyModel $companyModel
     ) {
     }
 
@@ -45,6 +49,7 @@ class CompanySegmentQueryBuilder
      */
     public function assembleCompaniesSegmentQueryBuilder(CompanySegment $companySegment, ContactSegmentFilters $segmentFilters, bool $changeAlias = false): QueryBuilder
     {
+        dump('assembleCompaniesSegmentQueryBuilder');
         $connection = $this->entityManager->getConnection();
         if ($connection instanceof PrimaryReadReplicaConnection) {
             // Prefer a replica connection if available.
@@ -55,7 +60,15 @@ class CompanySegmentQueryBuilder
 
         $companyTableAlias        = $changeAlias ? $this->generateRandomParameterName() : $this->companyRepository->getTableAlias();
 
+
+        if($companySegment->getFilters()[0]['type'] === 'leadlist'){
+//            $companySegment->setFilters($this->organizeContactCompanyFitler($companySegment->getFilters()));
+            dump('assembleCompaniesSegmentQueryBuilderCompanyLeadSegment',$companySegment->getFilters());
+//            return $this->assembleCompaniesSegmentQueryBuilderCompanyLeadSegment($companySegment,$segmentFilters);
+        }
+
         $queryBuilder->select($companyTableAlias.'.id')->from(MAUTIC_TABLE_PREFIX.'companies', $companyTableAlias);
+        dump($queryBuilder->getSQL(),$companySegment->getFilters());
         /*
          * Validate the plan, check for circular dependencies.
          *
@@ -65,7 +78,6 @@ class CompanySegmentQueryBuilder
 
         $params     = $queryBuilder->getParameters();
         $paramTypes = $queryBuilder->getParameterTypes();
-
         /** @var ContactSegmentFilter $filter */
         foreach ($segmentFilters as $filter) {
             if ($this->dispatchPluginFilteringEvent($filter, $queryBuilder)) {
@@ -73,7 +85,9 @@ class CompanySegmentQueryBuilder
             }
 
             try {
+                dump('try querybuilder',$queryBuilder->getSQL(),'-----');
                 $queryBuilder = $filter->applyQuery($queryBuilder);
+                dd($queryBuilder->getSQL());
                 // If we get here, the table is valid
             } catch (\Mautic\LeadBundle\Segment\Exception\TableNotFoundException $e) {
                 $this->logger->notice('Error in filter, table '.$filter->contactSegmentFilterCrate->getObject().' not found: '.$e->getMessage());
@@ -101,6 +115,91 @@ class CompanySegmentQueryBuilder
         return $queryBuilder;
     }
 
+
+    public function assembleCompaniesSegmentQueryBuilderCompanyLeadSegment(CompanySegment $companySegment, ContactSegmentFilters $segmentFilters, bool $changeAlias = false)
+    {
+        dump('assembleCompaniesSegmentQueryBuilderCompanyLeadSegment');
+        $connection = $this->entityManager->getConnection();
+        if ($connection instanceof PrimaryReadReplicaConnection) {
+            // Prefer a replica connection if available.
+            $connection->ensureConnectedToReplica();
+        }
+
+        $queryBuilder = new QueryBuilder($connection);
+
+        $companyTableAlias = $changeAlias ? $this->generateRandomParameterName() : $this->companyRepository->getTableAlias();
+
+        $leadTableAlias           = $this->generateRandomParameterName();
+        $LeadListsTableAlias   = $this->generateRandomParameterName();
+        $companyLeadsTableAlias   = $this->generateRandomParameterName();
+        $leadSegmentTableAlias = $this->generateRandomParameterName();
+        $companySegmentTableAlias = $this->generateRandomParameterName();
+        dump($leadTableAlias,$leadSegmentTableAlias,$companyLeadsTableAlias,$companySegmentTableAlias,$leadSegmentTableAlias,$companySegmentTableAlias);
+        $queryBuilder->select($companyTableAlias.'.id')->from(MAUTIC_TABLE_PREFIX.'companies', $companyTableAlias)
+            ->join(
+                $companyTableAlias,
+                MAUTIC_TABLE_PREFIX.'companies_segments',
+                $companySegmentTableAlias,
+                $companySegmentTableAlias.'.id = '.$companySegment->getId().' and '.$companySegmentTableAlias.'.manually_removed = 0',
+            )
+            ->join(
+                $companyTableAlias,
+                MAUTIC_TABLE_PREFIX.'companies_leads',
+                $companyLeadsTableAlias,
+                $companyLeadsTableAlias.'.lead_id = '.$companyTableAlias.'.id and '.$companyLeadsTableAlias.'.is_primary = 1'
+            )
+            ->join(
+                $companyTableAlias,
+                MAUTIC_TABLE_PREFIX.'lead_lists_leads',
+                $LeadListsTableAlias,
+                $companyLeadsTableAlias.'.lead_id = '.$LeadListsTableAlias.'.lead_id',
+            )->join(
+                $LeadListsTableAlias,
+                MAUTIC_TABLE_PREFIX.'lead_lists',
+                $leadSegmentTableAlias,
+                $LeadListsTableAlias.'.leadlist_id = '.$leadSegmentTableAlias.'.id'
+            )->join(
+                $leadSegmentTableAlias,
+                MAUTIC_TABLE_PREFIX.'leads',
+                $leadTableAlias,
+                $leadTableAlias.'.id = '.$leadSegmentTableAlias.'.lead_id',
+            );
+
+        $params     = $queryBuilder->getParameters();
+        $paramTypes = $queryBuilder->getParameterTypes();
+
+        /** @var ContactSegmentFilter $filter */
+        foreach ($segmentFilters as $filter) {
+            dump('filter',$filter->contactSegmentFilterCrate);
+            if ($this->dispatchPluginFilteringEvent($filter, $queryBuilder)) {
+                continue;
+            }
+//            $queryBuilder = $this->segmentReferenceFilterQueryBuilder->applyQuery($queryBuilder,$filter);
+            dump('tryyy querybuilder',$queryBuilder->getSQL(),$params,$paramTypes,'-----');
+            $queryBuilder = $filter->applyQuery($queryBuilder);
+            // We need to collect params between union queries in this iteration,
+            // because they are overwritten by new union query build
+            $params     = array_merge($params, $queryBuilder->getParameters());
+            $paramTypes = array_merge($paramTypes, $queryBuilder->getParameterTypes());
+        }
+        dump($queryBuilder->getSQL());
+        $queryBuilder->setParameters($params, $paramTypes);
+        $queryBuilder->applyStackLogic();
+
+        return $queryBuilder;
+//            ->join(
+//                $leadTableAlias,
+//                MAUTIC_TABLE_PREFIX.'leads',
+//
+//            )
+//        $queryBuilder->select($leadTableAlias.'.id')->from(MAUTIC_TABLE_PREFIX.'leads', $leadTableAlias)
+//            ->join(
+//                $leadTableAlias,
+//                MAUTIC_TABLE_PREFIX.'companies_leads',
+//                $LeadListsTableAlias,
+//                $LeadListsTableAlias.'.lead_id = '.$leadTableAlias.'.id and '.$LeadListsTableAlias.'.is_primary = 1'
+//            );
+    }
     /**
      * @throws SegmentQueryException
      */
@@ -111,7 +210,7 @@ class CompanySegmentQueryBuilder
             // Prefer a replica connection if available.
             $connection->ensureConnectedToReplica();
         }
-
+        dump('bbbb');
         $queryBuilder = new QueryBuilder($connection);
 
         $companyTableAlias = $changeAlias ? $this->generateRandomParameterName() : $this->companyRepository->getTableAlias();
@@ -152,14 +251,14 @@ class CompanySegmentQueryBuilder
             if ($this->dispatchPluginFilteringEvent($filter, $queryBuilder)) {
                 continue;
             }
-
+            dump('assembleCompaniesSegmentQueryBuilderLeadSegment');
             $queryBuilder = $filter->applyQuery($queryBuilder);
             // We need to collect params between union queries in this iteration,
             // because they are overwritten by new union query build
             $params     = array_merge($params, $queryBuilder->getParameters());
             $paramTypes = array_merge($paramTypes, $queryBuilder->getParameterTypes());
         }
-
+        dump($queryBuilder->getSQL());
         $queryBuilder->setParameters($params, $paramTypes);
         $queryBuilder->applyStackLogic();
 
@@ -427,5 +526,43 @@ class CompanySegmentQueryBuilder
         }
 
         return $segmentEdges;
+    }
+
+    private function organizeContactCompanyFitler(array $filters)
+    {
+        if (empty($filters)) {
+            return [];
+        }
+        $newFilter = [];
+        foreach ($filters as $key => $filter) {
+
+            if (!array_key_exists('properties', $filter) || !array_key_exists('filter', $filter['properties'])) {
+                $newFilter[$key] = $filter;
+                continue;
+            }
+
+            if(
+                array_key_exists('object', $filter)
+                && array_key_exists('field', $filter)
+                && $filter['object'] === 'lead'
+                && $filter['field'] === 'company'
+            ) {
+//                $companies = $this->companyRepository->findBy(['id' => $filter['properties']['filter']]);
+//                $companiesLeads = $this->companyModel->getCompanyLeadRepository()->findBy(['company' => $companies,'primary'=>true]);
+                $companiesLeads = $this->companyModel->getCompanyLeadRepository()->findBy(['company' => $filter['properties']['filter'],'primary'=>true]);
+                dd($companiesLeads);
+                $companiesId = [];
+                foreach ($companiesLeads as $company) {
+                    $companiesId[] = $company->getId();
+                }
+                $filter['properties']['companies'] = $companiesId;
+                $filter['properties']['filter'] = $companiesId;
+
+            }
+            $newFilter[$key] = $filter;
+        }
+
+        return $newFilter;
+
     }
 }

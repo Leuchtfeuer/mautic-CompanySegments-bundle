@@ -51,11 +51,13 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
      */
     public function applyQuery(QueryBuilder $queryBuilder, ContactSegmentFilter $filter): QueryBuilder
     {
+        dump('applyQuery');
         if (CompanySegmentModel::PROPERTIES_FIELD !== $filter->getField()) {
             throw new \RuntimeException('The supported field is '.CompanySegmentModel::PROPERTIES_FIELD);
         }
 
         $from = $queryBuilder->getQueryPart('from');
+        dump($from,$queryBuilder->getSQL(),$filter->contactSegmentFilterCrate);
         assert(is_array($from));
         if (
             array_key_exists(0, $from)
@@ -70,6 +72,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
 
     private function applyQueryToCompanySegment(QueryBuilder $queryBuilder, ContactSegmentFilter $filter): QueryBuilder
     {
+        dump('applyQueryToCompanySegment');
         $companiesTableAlias = $queryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'companies');
         \assert(is_string($companiesTableAlias));
         $segmentIds = $filter->getParameterValue();
@@ -175,6 +178,8 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
 
     private function applyQueryToLeadSegment(QueryBuilder $queryBuilder, ContactSegmentFilter $filter): QueryBuilder
     {
+//        dd($queryBuilder->getSQL(),'final');
+        dump('applyQueryToLeadSegment',$filter->contactSegmentFilterCrate);
         $leadAlias               = $queryBuilder->getTableAlias(MAUTIC_TABLE_PREFIX.'leads');
         $companiesLeadTableAlias = $this->generateRandomParameterName();
         assert(is_string($leadAlias));
@@ -261,7 +266,7 @@ class SegmentReferenceFilterQueryBuilder extends BaseFilterQueryBuilder implemen
         if (count($orLogic) > 0) {
             $queryBuilder->addLogic(new CompositeExpression(CompositeExpression::TYPE_OR, $orLogic), $filter->getGlue());
         }
-
+        dump($queryBuilder->getSQL());
         return $queryBuilder;
     }
 

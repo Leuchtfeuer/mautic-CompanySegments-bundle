@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener;
 
+use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\LeadField;
 use Mautic\LeadBundle\Entity\LeadFieldRepository;
 use Mautic\LeadBundle\Event\FormAdjustmentEvent;
@@ -12,6 +13,7 @@ use Mautic\LeadBundle\Event\ListFieldChoicesEvent;
 use Mautic\LeadBundle\Exception\ChoicesNotFoundException;
 use Mautic\LeadBundle\Helper\FormFieldHelper;
 use Mautic\LeadBundle\LeadEvents;
+use Mautic\LeadBundle\Model\CompanyModel;
 use Mautic\LeadBundle\Provider\FieldChoicesProviderInterface;
 use Mautic\LeadBundle\Provider\TypeOperatorProviderInterface;
 use Mautic\LeadBundle\Segment\OperatorOptions;
@@ -32,110 +34,160 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
         private TypeOperatorProviderInterface $typeOperatorProvider,
         private FieldChoicesProviderInterface $fieldChoicesProvider,
         private TranslatorInterface $translator,
+        private CompanyModel $companyModel,
     ) {
     }
 
     public static function getSubscribedEvents(): array
     {
         return [
-            LeadEvents::COLLECT_FILTER_CHOICES_FOR_LIST_FIELD_TYPE => ['onTypeListCollect', 0],
+            LeadEvents::COLLECT_FILTER_CHOICES_FOR_LIST_FIELD_TYPE => [
+                ['onCompanySegmentTypeListCollect', 0],
+                ['onCompaniesTypeListCollect', 0]
+            ],
             LeadEvents::ADJUST_FILTER_FORM_TYPE_FOR_FIELD          => [
                 ['onSegmentFilterFormHandleSelect', 400],
             ],
             CompanySegmentFiltersChoicesEvent::class => [
-                ['onGenerateSegmentFiltersAddStaticFields', 0],
-                ['onGenerateSegmentFiltersAddCustomFields', 0],
+                ['onGenerateCompanySegmentStaticFields', 0],
+                ['onUpdateGenerateFieldsWithDefaultLeadFieldsToCompanySegment', 0],
             ],
             LeadEvents::LIST_FILTERS_CHOICES_ON_GENERATE => [
-                ['updateGenerateSegmentFiltersAddStaticFieldsToLeadSegment', 0],
-                ['updateGenerateSegmentFiltersAddCustomFieldsToLeadSegment', 0],
+                ['updateGenerateSegmentFiltersAddStaticFields', 0],
+                ['onUpdateGenerateFieldsWithDefaultLeadFieldsToLeadSegment', 0],
             ],
         ];
     }
 
-    public function onGenerateSegmentFiltersAddStaticFields(CompanySegmentFiltersChoicesEvent $event): void
+    private function addStaticCompanyFields(object $event, ?string $search = null): void
+    {
+        $staticFields = [
+            'date_added' => [
+                'label'      => $this->translator->trans('mautic.core.date.added'),
+                'properties' => ['type' => 'date'],
+                'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('default'),
+                'object'     => 'company',
+            ],
+            'date_modified' => [
+                'label'      => $this->translator->trans('mautic.lead.list.filter.date_modified'),
+                'properties' => ['type' => 'datetime'],
+                'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('default'),
+                'object'     => 'company',
+            ],
+        ];
+
+        foreach ($staticFields as $alias => $fieldOptions) {
+            // label is defined as mautic.lead.company_segments
+            $event->addChoice('company', $alias, $fieldOptions);
+        }
+
+        $companySegmentFieldOptions = [
+            'label'      => $this->translator->trans('mautic.company_segments.filter.lists'),
+            'properties' => [
+                'type' => CompanySegmentModel::PROPERTIES_FIELD,
+                'list' => $this->fieldChoicesProvider->getChoicesForField('multiselect', CompanySegmentModel::PROPERTIES_FIELD, $event->getSearch()),
+            ],
+            'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('multiselect'),
+            'object'     => 'company',
+        ];
+
+        $event->addChoice(CompanySegmentModel::PROPERTIES_FIELD, CompanySegmentModel::PROPERTIES_FIELD, $companySegmentFieldOptions);
+    }
+
+    /**
+     * Add the company segments multiselect field.
+     *
+     * @param object $event
+     * @param string|null $search
+     */
+    private function addCompanySegmentListField(object $event, ?string $search = null): void
+    {
+        $companySegmentFieldOptions = [
+            'label'      => $this->translator->trans('mautic.company_segments.filter.lists'),
+            'properties' => [
+                'type' => CompanySegmentModel::PROPERTIES_FIELD,
+                'list' => $this->fieldChoicesProvider->getChoicesForField('multiselect', CompanySegmentModel::PROPERTIES_FIELD, $search),
+            ],
+            'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('multiselect'),
+            'object'     => 'company',
+        ];
+
+        $event->addChoice(CompanySegmentModel::PROPERTIES_FIELD, CompanySegmentModel::PROPERTIES_FIELD, $companySegmentFieldOptions);
+    }
+
+    private function addAnyCompanyContactField(object $event, ?string $search = null): void
+    {
+        $contactCompanySegmentFieldOptions = [
+            'label'      => $this->translator->trans('mautic.company_segments.filter.contacts.company.contact.membership'),
+            'properties' => [
+                'type' => 'leadlist',
+                'list' => $this->fieldChoicesProvider->getChoicesForField('multiselect', 'leadlist', $search),
+            ],
+            'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('multiselect'),
+            'object'     => 'company',
+        ];
+
+        $event->addChoice(
+            'any_company_contact',
+            'any_company_contact',
+            $contactCompanySegmentFieldOptions
+        );
+    }
+
+    public function onGenerateCompanySegmentStaticFields(CompanySegmentFiltersChoicesEvent $event): void
     {
         $this->setIncludeExcludeOperatorsToTextFiltersToCompanySegment($event);
-        $staticFields = [
-            'date_added' => [
-                'label'      => $this->translator->trans('mautic.core.date.added'),
-                'properties' => ['type' => 'date'],
-                'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('default'),
-                'object'     => 'company',
-            ],
-            'date_modified' => [
-                'label'      => $this->translator->trans('mautic.lead.list.filter.date_modified'),
-                'properties' => ['type' => 'datetime'],
-                'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('default'),
-                'object'     => 'company',
-            ],
-        ];
+        $this->addStaticCompanyFields($event, $event->getSearch());
+        $this->addCompanySegmentListField($event, $event->getSearch());
+        $this->addAnyCompanyContactField($event, $event->getSearch());
 
-        foreach ($staticFields as $alias => $fieldOptions) {
-            // label is defined as mautic.lead.company_segments
-            $event->addChoice('company', $alias, $fieldOptions);
-        }
-
-        $companySegmentFieldOptions = [
-            'label'      => $this->translator->trans('mautic.company_segments.filter.lists'),
-            'properties' => [
-                'type' => CompanySegmentModel::PROPERTIES_FIELD,
-                'list' => $this->fieldChoicesProvider->getChoicesForField('multiselect', CompanySegmentModel::PROPERTIES_FIELD, $event->getSearch()),
-            ],
-            'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('multiselect'),
-            'object'     => 'company',
-        ];
-        $event->addChoice(CompanySegmentModel::PROPERTIES_FIELD, CompanySegmentModel::PROPERTIES_FIELD, $companySegmentFieldOptions);
     }
 
-    public function updateGenerateSegmentFiltersAddStaticFieldsToLeadSegment(LeadListFiltersChoicesEvent $event): void
+    public function updateGenerateSegmentFiltersAddStaticFields(LeadListFiltersChoicesEvent $event): void
     {
         $this->setIncludeExcludeOperatorsToTextFiltersToLeadSegment($event);
-        $staticFields = [
-            'date_added' => [
-                'label'      => $this->translator->trans('mautic.core.date.added'),
-                'properties' => ['type' => 'date'],
-                'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('default'),
-                'object'     => 'company',
-            ],
-            'date_modified' => [
-                'label'      => $this->translator->trans('mautic.lead.list.filter.date_modified'),
-                'properties' => ['type' => 'datetime'],
-                'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('default'),
-                'object'     => 'company',
-            ],
-        ];
+        $this->addStaticCompanyFields($event, $event->getSearch());
+        $this->addCompanySegmentListField($event, $event->getSearch());
+    }
 
-        foreach ($staticFields as $alias => $fieldOptions) {
-            // label is defined as mautic.lead.company_segments
-            $event->addChoice('company', $alias, $fieldOptions);
+    public function onUpdateGenerateFieldsWithDefaultLeadFieldsToCompanySegment(CompanySegmentFiltersChoicesEvent $event): void
+    {
+        $this->onUpdateGenerateFieldsWithDefaultLeadFields($event);
+    }
+
+    public function onUpdateGenerateFieldsWithDefaultLeadFieldsToLeadSegment(LeadListFiltersChoicesEvent $event): void
+    {
+        $this->onUpdateGenerateFieldsWithDefaultLeadFields($event);
+    }
+
+    private function onUpdateGenerateFieldsWithDefaultLeadFields($event): void
+    {
+        $fields = $this->leadFieldRepository->getListablePublishedFields();
+
+        if ($fields->isEmpty()) {
+            // nothing to process
+            return;
         }
 
-        $companySegmentFieldOptions = [
-            'label'      => $this->translator->trans('mautic.company_segments.filter.lists'),
-            'properties' => [
-                'type' => CompanySegmentModel::PROPERTIES_FIELD,
-                'list' => $this->fieldChoicesProvider->getChoicesForField('multiselect', CompanySegmentModel::PROPERTIES_FIELD, $event->getSearch()),
-            ],
-            'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType('multiselect'),
-            'object'     => 'company',
-        ];
-        $event->addChoice(CompanySegmentModel::PROPERTIES_FIELD, CompanySegmentModel::PROPERTIES_FIELD, $companySegmentFieldOptions);
-    }
+        foreach ($fields as $field) {
+            if (!$field instanceof LeadField) {
+                continue;
+            }
 
-    public function updateGenerateSegmentFiltersAddCustomFieldsToLeadSegment(LeadListFiltersChoicesEvent $event): void
-    {
-        $this->leadFieldRepository->getListablePublishedFields()->filter(static function (LeadField $leadField): bool {
-            return 'company' === $leadField->getObject();
-        })->map(function (LeadField $field) use ($event): void {
-            $type               = $field->getType();
-            $properties         = $field->getProperties();
+            if ('company' !== $field->getObject()) {
+                continue;
+            }
+
+            $type       = $field->getType();
+            $properties = $field->getProperties() ?? [];
             $properties['type'] = $type;
 
             if ('boolean' === $type) {
+                $noKey  = $properties['no']  ?? 'no';
+                $yesKey = $properties['yes'] ?? 'yes';
                 $properties['list'] = [
-                    $properties['no']  => 0,
-                    $properties['yes'] => 1,
+                    $noKey  => 0,
+                    $yesKey => 1,
                 ];
             } elseif (in_array($type, ['select', 'multiselect'], true)) {
                 $properties['list'] = FormFieldHelper::parseListForChoices($properties['list'] ?? []);
@@ -143,7 +195,7 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
                 try {
                     $properties['list'] = $this->fieldChoicesProvider->getChoicesForField($type, $field->getAlias());
                 } catch (ChoicesNotFoundException) {
-                    // That's fine. Not all fields should have choices.
+                    // Not all fields have choices; ignore if missing
                 }
             }
 
@@ -157,59 +209,32 @@ class TypeOperatorSubscriber implements EventSubscriberInterface
                     'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType($type),
                 ]
             );
-        });
+        }
     }
 
-    public function onGenerateSegmentFiltersAddCustomFields(CompanySegmentFiltersChoicesEvent $event): void
-    {
-        $this->leadFieldRepository->getListablePublishedFields()->filter(static function (LeadField $leadField): bool {
-            return 'company' === $leadField->getObject();
-        })->map(function (LeadField $field) use ($event): void {
-            $type               = $field->getType();
-            $properties         = $field->getProperties();
-            $properties['type'] = $type;
-
-            if ('boolean' === $type) {
-                $properties['list'] = [
-                    $properties['no']  => 0,
-                    $properties['yes'] => 1,
-                ];
-            } elseif (in_array($type, ['select', 'multiselect'], true)) {
-                $properties['list'] = FormFieldHelper::parseListForChoices($properties['list'] ?? []);
-            } else {
-                try {
-                    $properties['list'] = $this->fieldChoicesProvider->getChoicesForField($type, $field->getAlias());
-                } catch (ChoicesNotFoundException) {
-                    // That's fine. Not all fields should have choices.
-                }
-            }
-
-            $event->addChoice(
-                $field->getObject(),
-                $field->getAlias(),
-                [
-                    'label'      => $field->getLabel(),
-                    'properties' => $properties,
-                    'object'     => $field->getObject(),
-                    'operators'  => $this->typeOperatorProvider->getOperatorsForFieldType($type),
-                ]
-            );
-        });
-    }
-
-    public function onTypeListCollect(ListFieldChoicesEvent $event): void
+    public function onCompanySegmentTypeListCollect(ListFieldChoicesEvent $event): void
     {
         $items     = $this->companySegmentModel->getCompanySegments();
         $labelName = 'name';
         $keyName   = 'id';
 
         $choices = [];
-
         foreach ($items as $item) {
             $choices[$item[$labelName]] = $item[$keyName];
         }
 
         $event->setChoicesForFieldAlias(CompanySegmentModel::PROPERTIES_FIELD, $choices);
+    }
+
+    public function onCompaniesTypeListCollect(ListFieldChoicesEvent $event): void
+    {
+        $items     = $this->companyModel->getEntities();
+        $choices = [];
+        foreach ($items as $item) {
+            assert($item instanceof Company);
+            $choices[$item->getName()] = $item->getName();
+        }
+        $event->setChoicesForFieldAlias('companies', $choices);
     }
 
     public function onSegmentFilterFormHandleSelect(FormAdjustmentEvent $event): void

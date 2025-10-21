@@ -16,6 +16,7 @@ use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use Mautic\CoreBundle\Translation\Translator;
 use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Entity\CompanyRepository;
+use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Entity\OperatorListTrait;
 use Mautic\LeadBundle\Model\ListModel;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompaniesSegments;
@@ -566,7 +567,6 @@ class CompanySegmentModel extends FormModel
 
             $namesNotToBeDeleted[$val] = $name;
         }
-        dump($namesNotToBeDeleted);
 
         return $namesNotToBeDeleted;
     }
