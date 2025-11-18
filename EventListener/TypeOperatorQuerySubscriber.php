@@ -19,12 +19,12 @@ class TypeOperatorQuerySubscriber implements EventSubscriberInterface
     /**
      * Makes sure that for datetime filters of type 'empty' and 'notEmpty' the query part
      * $queryBuilder->expr()->eq($tableAlias.'.'.$filter->getField(), $queryBuilder->expr()->literal(''))
-     * will not be added as comparing datetime fields with '' can result in an error
+     * will not be added as comparing datetime fields with '' can result in an error.
      */
     public function onCompanySegmentFiltering(CompanySegmentFilteringEvent $event): void
     {
         $filterCrate = $event->getDetails();
-        $operator = $filterCrate->getOperator();
+        $operator    = $filterCrate->getOperator();
 
         if (!in_array($operator, ['empty', '!empty'], true)) {
             return;
@@ -40,9 +40,9 @@ class TypeOperatorQuerySubscriber implements EventSubscriberInterface
         }
 
         $queryBuilder = $event->getQueryBuilder();
-        $tableAlias = $event->getCompaniesTableAlias();
-        $field = $tableAlias.'.'.$filterCrate->getField();
-        $expr = $queryBuilder->expr();
+        $tableAlias   = $event->getCompaniesTableAlias();
+        $field        = $tableAlias.'.'.$filterCrate->getField();
+        $expr         = $queryBuilder->expr();
 
         if ('empty' === $operator) {
             $expression = $expr->isNull($field);
