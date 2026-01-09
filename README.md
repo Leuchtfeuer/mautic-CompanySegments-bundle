@@ -9,8 +9,7 @@ This plugin brings company-based Segments to Mautic.
 It is part of the "ABM" suite of plugins that extends Mautic capabilities for working with Companies.
 
 ## Requirements
-- Mautic 5.x (minimum 5.1)
-- PHP 8.1 or higher
+- Mautic 6.x
 
 ## Installation
 ### Composer
