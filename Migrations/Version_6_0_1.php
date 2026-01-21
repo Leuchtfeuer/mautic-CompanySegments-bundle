@@ -10,14 +10,20 @@ use Mautic\IntegrationsBundle\Migration\AbstractMigration;
 
 class Version_6_0_1 extends AbstractMigration
 {
-    private string $companyEventLogTable = 'company_event_log';
+    private string $companyEventLogTable           = 'company_event_log';
+    private string $companiesPlaceholderLeadsTable = 'companies_placeholder_leads';
+    private bool $needsCompanyEventLogTable        = false;
+    private bool $needsPlaceholderLeadsTable       = false;
 
     protected function isApplicable(Schema $schema): bool
     {
         try {
-            $tableName = $this->concatPrefix($this->companyEventLogTable);
+            $companyEventLogTabelName         = $this->concatPrefix($this->companyEventLogTable);
+            $companyPlaceholderLeadsTableName = $this->concatPrefix($this->companiesPlaceholderLeadsTable);
+            $this->needsCompanyEventLogTable  = !$schema->hasTable($companyEventLogTabelName);
+            $this->needsPlaceholderLeadsTable = !$schema->hasTable($companyPlaceholderLeadsTableName);
 
-            return !$schema->hasTable($tableName);
+            return $this->needsCompanyEventLogTable || $this->needsPlaceholderLeadsTable;
         } catch (SchemaException) {
             return false;
         }
@@ -25,11 +31,22 @@ class Version_6_0_1 extends AbstractMigration
 
     protected function up(): void
     {
-        $tableName      = $this->concatPrefix($this->companyEventLogTable);
-        $companiesTable = $this->concatPrefix('companies');
+        if (true === $this->needsCompanyEventLogTable) {
+            $this->createCompanyEventLogTable();
+        }
+
+        if (true === $this->needsPlaceholderLeadsTable) {
+            $this->createCompanyPlaceholderLeadsTable();
+        }
+    }
+
+    private function createCompanyEventLogTable(): void
+    {
+        $companyEventLogTabelName = $this->concatPrefix($this->companyEventLogTable);
+        $companiesTable           = $this->concatPrefix('companies');
 
         $this->addSql("
-            CREATE TABLE `{$tableName}` (
+            CREATE TABLE `{$companyEventLogTabelName}` (
                 `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
                 `company_id` int(11) DEFAULT NULL,
                 `user_id` int(11) DEFAULT NULL,
@@ -51,11 +68,29 @@ class Version_6_0_1 extends AbstractMigration
         ");
 
         $this->addSql("
-            ALTER TABLE `{$tableName}`
+            ALTER TABLE `{$companyEventLogTabelName}`
             ADD CONSTRAINT `{$this->generatePropertyName($this->companyEventLogTable, 'fk', ['company_id'])}`
             FOREIGN KEY (`company_id`)
             REFERENCES `{$companiesTable}` (`id`)
             ON DELETE CASCADE;
+        ");
+    }
+
+    private function createCompanyPlaceholderLeadsTable(): void
+    {
+        $companyPlaceholderLeadsTableName = $this->concatPrefix($this->companiesPlaceholderLeadsTable);
+        $companiesTable                   = $this->concatPrefix('companies');
+        $leadsTable                       = $this->concatPrefix('leads');
+
+        $this->addSql("
+            CREATE TABLE `{$companyPlaceholderLeadsTableName}` (
+                `company_id` int(11) NOT NULL,
+                `lead_id` bigint(20) unsigned NOT NULL,
+                PRIMARY KEY (`company_id`),
+                KEY `{$this->generatePropertyName($this->companiesPlaceholderLeadsTable, 'idx', ['lead_id'])}` (`lead_id`),
+                CONSTRAINT `{$this->generatePropertyName($this->companiesPlaceholderLeadsTable, 'fk', ['lead_id'])}` FOREIGN KEY (`lead_id`) REFERENCES `{$leadsTable}` (`id`) ON DELETE CASCADE,
+                CONSTRAINT `{$this->generatePropertyName($this->companiesPlaceholderLeadsTable, 'fk', ['company_id'])}` FOREIGN KEY (`company_id`) REFERENCES `{$companiesTable}` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
         ");
     }
 }
