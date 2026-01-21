@@ -81,25 +81,26 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
         $excludeSegments       = $input->getOption('exclude');
 
         // Validate segment-id
-        if (null !== $id) {
-            if (!is_numeric($id) || !((int) $id > 0)) {
-                $output->writeln('<error>The --segment-id option must be a positive number or none.</error>');
+        if (null !== $id && (!is_numeric($id) || ((int) $id <= 0))) {
+            $output->writeln('<error>The --segment-id option must be a positive number or none.</error>');
 
-                return self::FAILURE;
-            }
+            return self::FAILURE;
         }
+        $id = null !== $id ? (int) $id : null;
 
-        if (!is_int($batch) || $batch < 1) {
+        if (!is_numeric($batch) || (int) $batch < 1) {
             $output->writeln('<error>The --batch-limit option must be a positive number.</error>');
 
             return self::FAILURE;
         }
+        $batch = (int) $batch;
 
-        if (null !== $max && !(is_int($max) && $max > 0)) {
+        if (null !== $max && (!is_numeric($max) || (int) $max <= 0)) {
             $output->writeln('<error>The --max-companies option must be a positive number or none.</error>');
 
             return self::FAILURE;
         }
+        $max = null !== $max ? (int) $max : null;
 
         if (!$this->checkRunStatus($input, $output, $id)) {
             return Command::SUCCESS;
@@ -110,9 +111,12 @@ class UpdateCompanySegmentsCommand extends ModeratedCommand
         }
 
         if (null !== $id) {
-            assert(is_int($id));
             $segment = $this->companySegmentModel->getEntity($id);
-            assert($segment instanceof CompanySegment);
+            if (!$segment instanceof CompanySegment) {
+                $output->writeln('<error>The corresponding company segment could not be found.</error>');
+
+                return self::FAILURE;
+            }
 
             if (null === $segment->getId()) {
                 $output->writeln('<error>'.$this->translator->trans('mautic.company_segments.list.rebuild.not_found', ['%id%' => $id]).'</error>');
