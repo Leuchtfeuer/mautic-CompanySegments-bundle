@@ -3,7 +3,7 @@
 return [
     'name'        => 'Company Segments by Leuchtfeuer',
     'description' => 'Install this first! Base plugin for the Account Based Marketing suite. Also brings company segments, filters etc.',
-    'version'     => '6.0.0',
+    'version'     => '6.0.1',
     'author'      => 'Leuchtfeuer Digital Marketing GmbH',
     'routes'      => [
         'main' => [
