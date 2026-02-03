@@ -12,6 +12,7 @@ class ModifyCompanySegmentsType extends AbstractType
         private TranslatorInterface $translator
     ) {
     }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder->add(
