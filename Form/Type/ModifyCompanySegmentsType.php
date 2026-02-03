@@ -27,7 +27,7 @@ class ModifyCompanySegmentsType extends AbstractType
         );
 
         $builder->add(
-            'remove_segment',
+            'remove_segments',
             CompanySegmentListType::class,
             [
                 'label' => 'mautic.modify_company_segments.form.remove',
