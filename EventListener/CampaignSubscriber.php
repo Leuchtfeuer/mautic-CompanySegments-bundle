@@ -133,8 +133,8 @@ class CampaignSubscriber implements EventSubscriberInterface
 
         $companySegment = $this->companySegmentModel->getCompaniesSegmentsRepository()->findBy(
             [
-                'company'        => $company,
-                'companySegment' => $companySegmentIds,
+                'company'         => $company,
+                'companySegment'  => $companySegmentIds,
                 'manuallyRemoved' => false,
             ]
         );
