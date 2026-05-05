@@ -95,7 +95,7 @@ class CampaignSubscriber implements EventSubscriberInterface
                 return $somethingHappened;
             }
             if (!$isToAdd) {
-                $this->companySegmentModel->removeCompany($companyEntity, $companySegmentIds, false, true);
+                $this->companySegmentModel->removeCompany($companyEntity, $companySegmentIds, true);
             } else {
                 $this->companySegmentModel->addCompany($companyEntity, $companySegmentIds);
             }
@@ -135,6 +135,7 @@ class CampaignSubscriber implements EventSubscriberInterface
             [
                 'company'        => $company,
                 'companySegment' => $companySegmentIds,
+                'manuallyRemoved' => false,
             ]
         );
 
