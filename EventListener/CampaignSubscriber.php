@@ -94,12 +94,30 @@ class CampaignSubscriber implements EventSubscriberInterface
             if (null === $companyEntity) {
                 return $somethingHappened;
             }
+
             if (!$isToAdd) {
                 $this->companySegmentModel->removeCompany($companyEntity, $companySegmentIds, true);
+                $somethingHappened = true;
             } else {
-                $this->companySegmentModel->addCompany($companyEntity, $companySegmentIds);
+                $existingSegmentCompanies = $this->companySegmentModel->getCompaniesSegmentsRepository()->findBy([
+                    'company'        => $companyEntity,
+                    'companySegment' => $companySegmentIds,
+                ]);
+
+                $segmentsToSkip = [];
+                foreach ($existingSegmentCompanies as $segmentCompany) {
+                    if (!$segmentCompany->isManuallyAdded() && !$segmentCompany->isManuallyRemoved()) {
+                        $segmentsToSkip[] = $segmentCompany->getCompanySegment()->getId();
+                    }
+                }
+
+                $segmentsToAdd = array_diff($companySegmentIds, $segmentsToSkip);
+
+                if ([] !== $segmentsToAdd) {
+                    $this->companySegmentModel->addCompany($companyEntity, $segmentsToAdd, true);
+                    $somethingHappened = true;
+                }
             }
-            $somethingHappened = true;
         }
 
         return $somethingHappened;
