@@ -241,10 +241,9 @@ class CompanySegmentModel extends FormModel
      */
     public function setSegmentCompanyCountInCache(array $segmentIds): void
     {
+        $companyCounts = $this->getCompaniesSegmentsRepository()->getCompanyCount($segmentIds);
         foreach ($segmentIds as $segmentId) {
-            $companySegment =  $this->getRepository()->find($segmentId);
-            assert($companySegment instanceof CompanySegment);
-            $count = $companySegment->getCompaniesSegments()->count();
+            $count = $companyCounts[$segmentId] ?? 0;
             $this->segmentCountCacheHelper->setSegmentCompanyCount($segmentId, $count);
         }
     }
