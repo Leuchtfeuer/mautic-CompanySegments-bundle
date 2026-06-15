@@ -147,9 +147,9 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
 
         $this->testSymfonyCommand('mautic:campaigns:trigger', ['-i' => $campaign->getId()]);
 
-        $totalCompaniesCompanySegmentGlibiAfter = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentGlibi]);
-        $totalCompaniesCompanySegmentEmptyAfter = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentEmpty]);
-        $totalCompaniesCompanySegmentAllAfter   = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentAll]);
+        $totalCompaniesCompanySegmentGlibiAfter = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentGlibi, 'manuallyRemoved' => false]);
+        $totalCompaniesCompanySegmentEmptyAfter = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentEmpty, 'manuallyRemoved' => false]);
+        $totalCompaniesCompanySegmentAllAfter   = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentAll, 'manuallyRemoved' => false]);
 
         self::assertCount(2, $totalCompaniesCompanySegmentEmptyAfter);
         self::assertCount(0, $totalCompaniesCompanySegmentAllAfter);
@@ -262,9 +262,9 @@ class CampaignSubscriberTest extends MauticMysqlTestCase
 
         $this->testSymfonyCommand('mautic:campaigns:trigger', ['-i' => $campaign->getId()]);
 
-        $totalCompaniesCompanySegmentGlibiAfter = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentGlibi]);
-        $totalCompaniesCompanySegmentEmptyAfter = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentEmpty]);
-        $totalCompaniesCompanySegmentAllAfter   = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentAll]);
+        $totalCompaniesCompanySegmentGlibiAfter = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentGlibi, 'manuallyRemoved' => false]);
+        $totalCompaniesCompanySegmentEmptyAfter = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentEmpty, 'manuallyRemoved' => false]);
+        $totalCompaniesCompanySegmentAllAfter   = $this->em->getRepository(CompaniesSegments::class)->findBy(['companySegment'=>$companySegmentAll, 'manuallyRemoved' => false]);
 
         self::assertCount(1, $totalCompaniesCompanySegmentGlibiAfter);
         self::assertCount(1, $totalCompaniesCompanySegmentEmptyAfter);
