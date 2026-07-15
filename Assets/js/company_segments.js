@@ -375,6 +375,35 @@ Mautic.companyBatchSubmit = function() {
     return false;
 };
 
+if (typeof Mautic.addDynamicContentFilter !== 'undefined') {
+    var originalAddDynamicContentFilter = Mautic.addDynamicContentFilter;
+
+    Mautic.addDynamicContentFilter = function (selectedFilter, jQueryVariant) {
+        var mQuery = (typeof jQueryVariant != 'undefined') ? jQueryVariant : window.mQuery;
+        var selectedOption = mQuery('option[data-mautic="available_' + selectedFilter + '"]').first();
+        var fieldType = selectedOption.data('field-type');
+
+        if (fieldType === 'company_segments') {
+            selectedOption.data('field-type', 'leadlist');
+            var result = originalAddDynamicContentFilter.apply(this, arguments);
+            selectedOption.data('field-type', 'company_segments');
+
+            // Fix the type hidden input back to company_segments
+            var dynamicContentItems = mQuery('.tab-pane.dynamic-content');
+            var activeDynamicContent = dynamicContentItems.filter(':visible');
+            var activeDynamicContentFilterContainer = activeDynamicContent
+                .find('div[data-filter-container]').filter(':visible');
+
+            activeDynamicContentFilterContainer.children('.panel').last()
+                .find('input[name$="[type]"]').val('company_segments');
+
+            return result;
+        }
+
+        return originalAddDynamicContentFilter.apply(this, arguments);
+    };
+}
+
 if (typeof Mautic.addDwcFilter !== 'undefined') {
     var originalAddDwcFilter = Mautic.addDwcFilter;
 

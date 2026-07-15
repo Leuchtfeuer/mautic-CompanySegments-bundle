@@ -57,4 +57,14 @@ return function (ContainerConfigurator $configurator): void {
         ])
         ->call('setConnection', [service('database_connection')])
         ->tag('form.type');
+
+    $services->set(MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\DcEntryFiltersTypeDecorator::class)
+        ->decorate('mautic.form.type.dynamic_content_filter_entry_filters', null, 10)
+        ->args([
+            service('translator'),
+            service('mautic.lead.model.list'),
+            service('mautic.company_segments.model.company_segment'),
+        ])
+        ->call('setConnection', [service('database_connection')])
+        ->tag('form.type');
 };
