@@ -55,7 +55,7 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
         }
 
         $lead = $event->getLead();
-        if (empty($lead)) {
+        if (null === $lead) {
             return;
         }
 
@@ -66,7 +66,7 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
             $leadArray = $this->primaryCompanyHelper->mergePrimaryCompanyWithProfileFields((int) $lead['id'], $lead);
         }
 
-        if (empty($leadArray['id'])) {
+        if (!isset($leadArray['id'])) {
             // Preview mode with faked data
             return;
         }
@@ -113,6 +113,7 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
         $event->setClickthrough($clickthrough);
     }
 
+    /** @param array<mixed> $filters */
     private function hasCompanySegmentsFilter(array $filters): bool
     {
         foreach ($filters as $filter) {
@@ -126,10 +127,16 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
         return false;
     }
 
+    /**
+     * @param array<mixed>     $conditions
+     * @param array{id: mixed} $lead
+     */
     private function matchFilterGroupForLead(array $conditions, array $lead): bool
     {
         foreach ($conditions as $condition) {
             if ('company_segments' === ($condition['type'] ?? null)) {
+                \assert(is_int($lead['id']) || is_string($lead['id']));
+
                 return $this->evaluateCompanySegmentsCondition($condition, $lead);
             }
         }
@@ -139,11 +146,11 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
 
     /**
      * @param array{type: string, operator: string, filter: mixed} $condition
-     * @param array{id: mixed}                                     $lead
+     * @param array{id: int|string}                                $lead
      */
     private function evaluateCompanySegmentsCondition(array $condition, array $lead): bool
     {
-        $operator    = $condition['operator'] ?? '';
+        $operator    = $condition['operator'];
         $filterValue = $condition['filter'] ?? [];
 
         if (!is_array($filterValue)) {

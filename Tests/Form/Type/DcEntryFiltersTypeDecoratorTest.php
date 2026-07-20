@@ -7,6 +7,7 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Tests\Form\Type;
 use Mautic\LeadBundle\Model\ListModel;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Form\Type\DcEntryFiltersTypeDecorator;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Model\CompanySegmentModel;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormEvent;
@@ -15,8 +16,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class DcEntryFiltersTypeDecoratorTest extends TestCase
 {
-    private ListModel $listModel;
-    private CompanySegmentModel $companySegmentModel;
+    private ListModel&MockObject $listModel;
+    private CompanySegmentModel&MockObject $companySegmentModel;
     private DcEntryFiltersTypeDecorator $decorator;
 
     protected function setUp(): void
@@ -42,7 +43,7 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
         $event = new FormEvent($this->createMock(FormInterface::class), $data);
         $this->invokePreProcess($event);
 
-        $this->assertSame($data, $event->getData());
+        self::assertSame($data, $event->getData());
     }
 
     public function testPreProcessConvertsCompanySegmentsTypeToText(): void
@@ -53,10 +54,11 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
         $this->invokePreProcess($event);
 
         $result = $event->getData();
-        $this->assertSame('text', $result['type']);
-        $this->assertSame('company_segments', $result['__original_type']);
-        $this->assertSame('in', $result['__original_operator']);
-        $this->assertSame([1, 2], $result['filter']);
+        \assert(is_array($result));
+        self::assertSame('text', $result['type']);
+        self::assertSame('company_segments', $result['__original_type']);
+        self::assertSame('in', $result['__original_operator']);
+        self::assertSame([1, 2], $result['filter']);
     }
 
     public function testPreProcessSetsEmptyArrayWhenFilterMissing(): void
@@ -66,7 +68,9 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
         $event = new FormEvent($this->createMock(FormInterface::class), $data);
         $this->invokePreProcess($event);
 
-        $this->assertSame([], $event->getData()['filter']);
+        $data = $event->getData();
+        \assert(is_array($data));
+        self::assertSame([], $data['filter']);
     }
 
     public function testPreProcessWrapsScalarFilterInArray(): void
@@ -76,7 +80,9 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
         $event = new FormEvent($this->createMock(FormInterface::class), $data);
         $this->invokePreProcess($event);
 
-        $this->assertSame(['5'], $event->getData()['filter']);
+        $data = $event->getData();
+        \assert(is_array($data));
+        self::assertSame(['5'], $data['filter']);
     }
 
     public function testPostProcessDoesNothingWhenOriginalTypeNotSet(): void
@@ -84,12 +90,12 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
         $data = ['type' => 'leadlist', 'filter' => [1]];
 
         $form = $this->createMock(FormInterface::class);
-        $form->expects($this->never())->method('remove');
+        $form->expects(self::never())->method('remove');
 
         $event = new FormEvent($form, $data);
         $this->invokePostProcess($event, []);
 
-        $this->assertSame($data, $event->getData());
+        self::assertSame($data, $event->getData());
     }
 
     public function testPostProcessWithOperatorInAddsMultipleChoiceField(): void
@@ -109,20 +115,21 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
 
         $form = $this->createMock(FormInterface::class);
         $form->method('has')->with('filter')->willReturn(true);
-        $form->expects($this->once())->method('remove')->with('filter');
-        $form->expects($this->once())->method('add')->with(
+        $form->expects(self::once())->method('remove')->with('filter');
+        $form->expects(self::once())->method('add')->with(
             'filter',
             ChoiceType::class,
-            $this->callback(fn (array $opts): bool => true === $opts['multiple'])
+            self::callback(fn (array $opts): bool => true === $opts['multiple'])
         );
 
         $event = new FormEvent($form, $data);
         $this->invokePostProcess($event, ['companySegments' => ['Segment A' => 1, 'Segment B' => 2]]);
 
         $result = $event->getData();
-        $this->assertSame('company_segments', $result['type']);
-        $this->assertArrayNotHasKey('__original_type', $result);
-        $this->assertArrayNotHasKey('__original_operator', $result);
+        \assert(is_array($result));
+        self::assertSame('company_segments', $result['type']);
+        self::assertArrayNotHasKey('__original_type', $result);
+        self::assertArrayNotHasKey('__original_operator', $result);
     }
 
     public function testPostProcessWithOperatorNotInAddsMultipleChoiceField(): void
@@ -137,10 +144,10 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
 
         $form = $this->createMock(FormInterface::class);
         $form->method('has')->with('filter')->willReturn(false);
-        $form->expects($this->once())->method('add')->with(
+        $form->expects(self::once())->method('add')->with(
             'filter',
             ChoiceType::class,
-            $this->callback(fn (array $opts): bool => true === $opts['multiple'])
+            self::callback(fn (array $opts): bool => true === $opts['multiple'])
         );
 
         $event = new FormEvent($form, $data);
@@ -159,10 +166,10 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
 
         $form = $this->createMock(FormInterface::class);
         $form->method('has')->with('filter')->willReturn(false);
-        $form->expects($this->once())->method('add')->with(
+        $form->expects(self::once())->method('add')->with(
             'filter',
             ChoiceType::class,
-            $this->callback(fn (array $opts): bool => false === $opts['multiple'])
+            self::callback(fn (array $opts): bool => false === $opts['multiple'])
         );
 
         $event = new FormEvent($form, $data);
@@ -181,10 +188,10 @@ class DcEntryFiltersTypeDecoratorTest extends TestCase
 
         $form = $this->createMock(FormInterface::class);
         $form->method('has')->with('filter')->willReturn(false);
-        $form->expects($this->once())->method('add')->with(
+        $form->expects(self::once())->method('add')->with(
             'filter',
             ChoiceType::class,
-            $this->callback(fn (array $opts): bool => false === $opts['multiple'])
+            self::callback(fn (array $opts): bool => false === $opts['multiple'])
         );
 
         $event = new FormEvent($form, $data);
