@@ -18,13 +18,12 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Handles evaluation of company_segments filters in email Dynamic Content.
+ * Evaluates company_segments filters in email Dynamic Content.
  *
- * EmailBundle's TokenSubscriber calls matchFilterForLead() directly from a trait,
- * without firing ON_CONTACTS_FILTER_EVALUATE. This subscriber intercepts
- * TOKEN_REPLACEMENT at priority -200 (before TokenSubscriber at -254) and
- * evaluates any DC token containing company_segments filters itself, then removes
- * those items from the clickthrough so TokenSubscriber does not crash on them.
+ * EmailBundle bypasses ON_CONTACTS_FILTER_EVALUATE, so this subscriber intercepts
+ * TOKEN_REPLACEMENT at priority -200 (before TokenSubscriber at -254) and handles
+ * DC tokens with company_segments filters directly, then removes them from the
+ * clickthrough so TokenSubscriber does not process them again.
  */
 class EmailDynamicContentSubscriber implements EventSubscriberInterface
 {
@@ -140,7 +139,7 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
 
     /**
      * @param array{type: string, operator: string, filter: mixed} $condition
-     * @param array{id: mixed}                                      $lead
+     * @param array{id: mixed}                                     $lead
      */
     private function evaluateCompanySegmentsCondition(array $condition, array $lead): bool
     {

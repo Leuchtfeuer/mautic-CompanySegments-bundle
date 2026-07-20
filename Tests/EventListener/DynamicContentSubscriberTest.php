@@ -11,13 +11,14 @@ use Mautic\LeadBundle\Exception\PrimaryCompanyNotFoundException;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener\DynamicContentSubscriber;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Integration\Config;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class DynamicContentSubscriberTest extends TestCase
 {
-    private CompanySegmentRepository $companySegmentRepository;
-    private CompanyLeadRepository $companyLeadRepository;
-    private Config $config;
+    private CompanySegmentRepository&MockObject $companySegmentRepository;
+    private CompanyLeadRepository&MockObject $companyLeadRepository;
+    private Config&MockObject $config;
     private DynamicContentSubscriber $subscriber;
 
     protected function setUp(): void
