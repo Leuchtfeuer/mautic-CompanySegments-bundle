@@ -145,7 +145,7 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @param array<string, mixed> $condition
+     * @param array<string, mixed>  $condition
      * @param array{id: int|string} $lead
      */
     private function evaluateCompanySegmentsCondition(array $condition, array $lead): bool
