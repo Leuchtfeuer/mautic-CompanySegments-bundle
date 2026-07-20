@@ -113,11 +113,13 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
         $event->setClickthrough($clickthrough);
     }
 
-    /** @param array<mixed> $filters */
+    /** @param array<array<string, mixed>> $filters */
     private function hasCompanySegmentsFilter(array $filters): bool
     {
         foreach ($filters as $filter) {
-            foreach ($filter['filters'] ?? [] as $condition) {
+            /** @var array<array<string, mixed>> $subFilters */
+            $subFilters = $filter['filters'] ?? [];
+            foreach ($subFilters as $condition) {
                 if ('company_segments' === ($condition['type'] ?? null)) {
                     return true;
                 }
@@ -128,15 +130,13 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @param array<mixed>     $conditions
-     * @param array{id: mixed} $lead
+     * @param array<array<string, mixed>> $conditions
+     * @param array{id: int|string}       $lead
      */
     private function matchFilterGroupForLead(array $conditions, array $lead): bool
     {
         foreach ($conditions as $condition) {
             if ('company_segments' === ($condition['type'] ?? null)) {
-                \assert(is_int($lead['id']) || is_string($lead['id']));
-
                 return $this->evaluateCompanySegmentsCondition($condition, $lead);
             }
         }
@@ -145,12 +145,12 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * @param array{type: string, operator: string, filter: mixed} $condition
-     * @param array{id: int|string}                                $lead
+     * @param array<string, mixed> $condition
+     * @param array{id: int|string} $lead
      */
     private function evaluateCompanySegmentsCondition(array $condition, array $lead): bool
     {
-        $operator    = $condition['operator'];
+        $operator    = $condition['operator'] ?? '';
         $filterValue = $condition['filter'] ?? [];
 
         if (!is_array($filterValue)) {
