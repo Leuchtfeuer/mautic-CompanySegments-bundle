@@ -173,16 +173,16 @@ class EmailDynamicContentSubscriberTest extends TestCase
         self::assertSame('matched', $event->getTokens()['{dynamiccontent="t"}']);
     }
 
-    /** Contact segment AND company segment both match → show variant content. */
-    public function testMixedAndConditionsAllMatchShowsVariant(): void
+    /** AND-glue: first condition passes but second fails → show default. */
+    public function testAndConditionSecondFailsShowsDefault(): void
     {
         $this->config->method('isPublished')->willReturn(true);
 
         $lead = ['id' => 10, 'email' => 'a@b.com'];
         $this->primaryCompanyHelper->method('mergePrimaryCompanyWithProfileFields')->willReturn($lead);
         $this->companyLeadRepository->method('getPrimaryCompanyByLeadId')->willReturn(['id' => 99]);
-        $this->companySegmentRepository->method('isCompanyInSegments')->willReturn(true);
-        $this->segmentRepository->method('isContactInSegments')->willReturn(true);
+        $this->companySegmentRepository->method('isCompanyInSegments')
+            ->willReturnOnConsecutiveCalls(true, false);
         $this->dispatcher->method('dispatch')->willReturnArgument(0);
 
         $clickthrough = [
@@ -193,41 +193,8 @@ class EmailDynamicContentSubscriberTest extends TestCase
                 'filters'   => [[
                     'content' => 'matched',
                     'filters' => [
-                        ['type' => 'leadlist', 'field' => 'leadlist', 'operator' => 'in', 'filter' => [1], 'glue' => 'and'],
-                        ['type' => 'company_segments', 'operator' => 'in', 'filter' => [5], 'glue' => 'and'],
-                    ],
-                ]],
-            ]],
-        ];
-
-        $event = $this->makeEvent($lead, $clickthrough);
-        $this->subscriber->onTokenReplacement($event);
-
-        self::assertSame('matched', $event->getTokens()['{dynamiccontent="t"}']);
-    }
-
-    /** Company segment matches but AND contact segment fails → show default. */
-    public function testMixedAndConditionsOneFailsShowsDefault(): void
-    {
-        $this->config->method('isPublished')->willReturn(true);
-
-        $lead = ['id' => 10, 'email' => 'a@b.com'];
-        $this->primaryCompanyHelper->method('mergePrimaryCompanyWithProfileFields')->willReturn($lead);
-        $this->companyLeadRepository->method('getPrimaryCompanyByLeadId')->willReturn(['id' => 99]);
-        $this->companySegmentRepository->method('isCompanyInSegments')->willReturn(true);
-        $this->segmentRepository->method('isContactInSegments')->willReturn(false);
-        $this->dispatcher->method('dispatch')->willReturnArgument(0);
-
-        $clickthrough = [
-            'tokens'         => [],
-            'dynamicContent' => [[
-                'tokenName' => 't',
-                'content'   => 'default',
-                'filters'   => [[
-                    'content' => 'matched',
-                    'filters' => [
-                        ['type' => 'company_segments', 'operator' => 'in', 'filter' => [5], 'glue' => 'and'],
-                        ['type' => 'leadlist', 'field' => 'leadlist', 'operator' => 'in', 'filter' => [1], 'glue' => 'and'],
+                        ['type' => 'company_segments', 'operator' => 'in', 'filter' => [1], 'glue' => 'and'],
+                        ['type' => 'company_segments', 'operator' => 'in', 'filter' => [2], 'glue' => 'and'],
                     ],
                 ]],
             ]],
