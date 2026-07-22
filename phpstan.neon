@@ -75,5 +75,3 @@ parameters:
           reportUnmatched: false
         - message: '#Dynamic call to static method#'
           path: Tests/EventListener/DynamicContentSubscriberTest.php
-        - message: '#Call to an undefined method .+::(method|willReturn|willThrowException|with)\(\)#'
-          path: Tests/EventListener/DynamicContentSubscriberTest.php
