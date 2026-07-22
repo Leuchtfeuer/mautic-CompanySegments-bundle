@@ -193,7 +193,7 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
             OperatorOptions::NOT_EMPTY => $this->companySegmentRepository->isCompanyInAnySegment($companyId),
             OperatorOptions::IN        => $this->companySegmentRepository->isCompanyInSegments($companyId, $segmentIds),
             OperatorOptions::NOT_IN    => $this->companySegmentRepository->isNotCompanyInSegments($companyId, $segmentIds),
-            default                    => false,
+            default                    => throw new \InvalidArgumentException(sprintf("Unexpected operator '%s'", $operator)),
         };
     }
 }
