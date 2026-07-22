@@ -171,7 +171,7 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
      */
     private function evaluateCompanySegmentsCondition(array $condition, array $lead): bool
     {
-        $operator    = (string) ($condition['operator'] ?? '');
+        $operator    = is_string($condition['operator'] ?? null) ? $condition['operator'] : '';
         $filterValue = $condition['filter'] ?? [];
 
         if (!is_array($filterValue)) {
