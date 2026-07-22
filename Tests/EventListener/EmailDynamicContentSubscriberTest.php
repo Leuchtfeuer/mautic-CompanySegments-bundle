@@ -9,6 +9,7 @@ use Mautic\EmailBundle\EmailEvents;
 use Mautic\EmailBundle\Event\EmailSendEvent;
 use Mautic\LeadBundle\Entity\CompanyLeadRepository;
 use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Entity\LeadListRepository;
 use Mautic\LeadBundle\Exception\PrimaryCompanyNotFoundException;
 use Mautic\LeadBundle\Helper\PrimaryCompanyHelper;
 use MauticPlugin\LeuchtfeuerCompanySegmentsBundle\Entity\CompanySegmentRepository;
@@ -25,6 +26,7 @@ class EmailDynamicContentSubscriberTest extends TestCase
     private Config&MockObject $config;
     private PrimaryCompanyHelper&MockObject $primaryCompanyHelper;
     private EventDispatcherInterface&MockObject $dispatcher;
+    private LeadListRepository&MockObject $segmentRepository;
     private EmailDynamicContentSubscriber $subscriber;
 
     protected function setUp(): void
@@ -34,16 +36,20 @@ class EmailDynamicContentSubscriberTest extends TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['getPrimaryCompanyByLeadId'])
             ->getMock();
-        $this->config                = $this->createMock(Config::class);
-        $this->primaryCompanyHelper  = $this->createMock(PrimaryCompanyHelper::class);
-        $this->dispatcher            = $this->createMock(EventDispatcherInterface::class);
+        $this->config               = $this->createMock(Config::class);
+        $this->primaryCompanyHelper = $this->createMock(PrimaryCompanyHelper::class);
+        $this->dispatcher           = $this->createMock(EventDispatcherInterface::class);
+        $this->segmentRepository    = $this->getMockBuilder(LeadListRepository::class)
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $this->subscriber = new EmailDynamicContentSubscriber(
             $this->companySegmentRepository,
             $this->companyLeadRepository,
             $this->config,
             $this->primaryCompanyHelper,
-            $this->dispatcher
+            $this->dispatcher,
+            $this->segmentRepository,
         );
     }
 
@@ -162,6 +168,105 @@ class EmailDynamicContentSubscriberTest extends TestCase
         $this->dispatcher->method('dispatch')->willReturnArgument(0);
 
         $event = $this->makeEvent($lead, $this->makeDcClickthrough('t', 'empty', [], 'matched', 'default'));
+        $this->subscriber->onTokenReplacement($event);
+
+        self::assertSame('matched', $event->getTokens()['{dynamiccontent="t"}']);
+    }
+
+    /** Contact segment AND company segment both match → show variant content. */
+    public function testMixedAndConditionsAllMatchShowsVariant(): void
+    {
+        $this->config->method('isPublished')->willReturn(true);
+
+        $lead = ['id' => 10, 'email' => 'a@b.com'];
+        $this->primaryCompanyHelper->method('mergePrimaryCompanyWithProfileFields')->willReturn($lead);
+        $this->companyLeadRepository->method('getPrimaryCompanyByLeadId')->willReturn(['id' => 99]);
+        $this->companySegmentRepository->method('isCompanyInSegments')->willReturn(true);
+        $this->segmentRepository->method('isContactInSegments')->willReturn(true);
+        $this->dispatcher->method('dispatch')->willReturnArgument(0);
+
+        $clickthrough = [
+            'tokens'         => [],
+            'dynamicContent' => [[
+                'tokenName' => 't',
+                'content'   => 'default',
+                'filters'   => [[
+                    'content' => 'matched',
+                    'filters' => [
+                        ['type' => 'leadlist', 'field' => 'leadlist', 'operator' => 'in', 'filter' => [1], 'glue' => 'and'],
+                        ['type' => 'company_segments', 'operator' => 'in', 'filter' => [5], 'glue' => 'and'],
+                    ],
+                ]],
+            ]],
+        ];
+
+        $event = $this->makeEvent($lead, $clickthrough);
+        $this->subscriber->onTokenReplacement($event);
+
+        self::assertSame('matched', $event->getTokens()['{dynamiccontent="t"}']);
+    }
+
+    /** Company segment matches but AND contact segment fails → show default. */
+    public function testMixedAndConditionsOneFailsShowsDefault(): void
+    {
+        $this->config->method('isPublished')->willReturn(true);
+
+        $lead = ['id' => 10, 'email' => 'a@b.com'];
+        $this->primaryCompanyHelper->method('mergePrimaryCompanyWithProfileFields')->willReturn($lead);
+        $this->companyLeadRepository->method('getPrimaryCompanyByLeadId')->willReturn(['id' => 99]);
+        $this->companySegmentRepository->method('isCompanyInSegments')->willReturn(true);
+        $this->segmentRepository->method('isContactInSegments')->willReturn(false);
+        $this->dispatcher->method('dispatch')->willReturnArgument(0);
+
+        $clickthrough = [
+            'tokens'         => [],
+            'dynamicContent' => [[
+                'tokenName' => 't',
+                'content'   => 'default',
+                'filters'   => [[
+                    'content' => 'matched',
+                    'filters' => [
+                        ['type' => 'company_segments', 'operator' => 'in', 'filter' => [5], 'glue' => 'and'],
+                        ['type' => 'leadlist', 'field' => 'leadlist', 'operator' => 'in', 'filter' => [1], 'glue' => 'and'],
+                    ],
+                ]],
+            ]],
+        ];
+
+        $event = $this->makeEvent($lead, $clickthrough);
+        $this->subscriber->onTokenReplacement($event);
+
+        self::assertSame('default', $event->getTokens()['{dynamiccontent="t"}']);
+    }
+
+    /** OR-glue: first condition fails, second OR-condition passes → show variant. */
+    public function testOrConditionSecondGroupMatchesShowsVariant(): void
+    {
+        $this->config->method('isPublished')->willReturn(true);
+
+        $lead = ['id' => 10, 'email' => 'a@b.com'];
+        $this->primaryCompanyHelper->method('mergePrimaryCompanyWithProfileFields')->willReturn($lead);
+        $this->companyLeadRepository->method('getPrimaryCompanyByLeadId')->willReturn(['id' => 99]);
+        $this->companySegmentRepository->method('isCompanyInSegments')
+            ->willReturnOnConsecutiveCalls(false, true);
+        $this->dispatcher->method('dispatch')->willReturnArgument(0);
+
+        $clickthrough = [
+            'tokens'         => [],
+            'dynamicContent' => [[
+                'tokenName' => 't',
+                'content'   => 'default',
+                'filters'   => [[
+                    'content' => 'matched',
+                    'filters' => [
+                        ['type' => 'company_segments', 'operator' => 'in', 'filter' => [1], 'glue' => 'and'],
+                        ['type' => 'company_segments', 'operator' => 'in', 'filter' => [2], 'glue' => 'or'],
+                    ],
+                ]],
+            ]],
+        ];
+
+        $event = $this->makeEvent($lead, $clickthrough);
         $this->subscriber->onTokenReplacement($event);
 
         self::assertSame('matched', $event->getTokens()['{dynamiccontent="t"}']);

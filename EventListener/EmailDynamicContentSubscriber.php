@@ -7,8 +7,10 @@ namespace MauticPlugin\LeuchtfeuerCompanySegmentsBundle\EventListener;
 use Mautic\CoreBundle\Event\TokenReplacementEvent;
 use Mautic\EmailBundle\EmailEvents;
 use Mautic\EmailBundle\Event\EmailSendEvent;
+use Mautic\EmailBundle\EventListener\MatchFilterForLeadTrait;
 use Mautic\LeadBundle\Entity\CompanyLeadRepository;
 use Mautic\LeadBundle\Entity\Lead;
+use Mautic\LeadBundle\Entity\LeadListRepository;
 use Mautic\LeadBundle\Exception\PrimaryCompanyNotFoundException;
 use Mautic\LeadBundle\Helper\PrimaryCompanyHelper;
 use Mautic\LeadBundle\Segment\OperatorOptions;
@@ -27,12 +29,15 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class EmailDynamicContentSubscriber implements EventSubscriberInterface
 {
+    use MatchFilterForLeadTrait;
+
     public function __construct(
         private CompanySegmentRepository $companySegmentRepository,
         private CompanyLeadRepository $companyLeadRepository,
         private Config $config,
         private PrimaryCompanyHelper $primaryCompanyHelper,
         private EventDispatcherInterface $dispatcher,
+        protected LeadListRepository $segmentRepository,
     ) {
     }
 
@@ -130,18 +135,34 @@ class EmailDynamicContentSubscriber implements EventSubscriberInterface
     }
 
     /**
+     * Evaluates a filter group (AND/OR conditions) against a lead.
+     * Routes company_segments conditions to our evaluator and delegates
+     * all other condition types to MatchFilterForLeadTrait.
+     *
      * @param array<array<string, mixed>> $conditions
      * @param array{id: int|string}       $lead
      */
     private function matchFilterGroupForLead(array $conditions, array $lead): bool
     {
+        $groups   = [];
+        $groupNum = 0;
+
         foreach ($conditions as $condition) {
-            if ('company_segments' === ($condition['type'] ?? null)) {
-                return $this->evaluateCompanySegmentsCondition($condition, $lead);
+            if (0 === $groupNum || 'or' === ($condition['glue'] ?? 'and')) {
+                ++$groupNum;
+                $groups[$groupNum] = null;
             }
+
+            if (false === $groups[$groupNum]) {
+                continue;
+            }
+
+            $groups[$groupNum] = 'company_segments' === ($condition['type'] ?? null)
+                ? $this->evaluateCompanySegmentsCondition($condition, $lead)
+                : $this->matchFilterForLead([$condition], $lead);
         }
 
-        return false;
+        return in_array(true, $groups, strict: true);
     }
 
     /**
