@@ -385,8 +385,18 @@ if (typeof Mautic.addDynamicContentFilter !== 'undefined') {
 
         if (fieldType === 'company_segments') {
             selectedOption.data('field-type', 'leadlist');
-            var result = originalAddDynamicContentFilter.apply(this, arguments);
-            selectedOption.data('field-type', 'company_segments');
+
+            var result;
+            try {
+                result = originalAddDynamicContentFilter.apply(this, arguments);
+            } catch (e) {
+                // Core's Mautic.convertDwcFilterInput() isn't iframe-safe and throws when called
+                // from the legacy builder overlay; the row is already fully built by then, so
+                // swallow it and continue restoring the type below.
+                result = undefined;
+            } finally {
+                selectedOption.data('field-type', 'company_segments');
+            }
 
             // Fix the type hidden input back to company_segments
             var dynamicContentItems = mQuery('.tab-pane.dynamic-content');
